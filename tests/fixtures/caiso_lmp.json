@@ -1,0 +1,26 @@
+[
+  {
+    "Time": "2026-08-01T00:00:00-07:00",
+    "Interval Start": "2026-08-01T00:00:00-07:00",
+    "Interval End": "2026-08-01T01:00:00-07:00",
+    "Market": "DAY_AHEAD_HOURLY",
+    "Location": "TH_NP15_GEN-APND",
+    "Location Type": "Trading Hub",
+    "LMP": 45.25,
+    "Energy": 42,
+    "Congestion": 0.75,
+    "Loss": 2.5
+  },
+  {
+    "Time": "2026-08-01T01:00:00-07:00",
+    "Interval Start": "2026-08-01T01:00:00-07:00",
+    "Interval End": "2026-08-01T02:00:00-07:00",
+    "Market": "DAY_AHEAD_HOURLY",
+    "Location": "TH_SP15_GEN-APND",
+    "Location Type": "Trading Hub",
+    "LMP": -7,
+    "Energy": -6,
+    "Congestion": -0.5,
+    "Loss": -0.5
+  }
+]
