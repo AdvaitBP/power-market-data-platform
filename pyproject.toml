@@ -10,7 +10,11 @@ readme = "README.md"
 requires-python = ">=3.12,<3.13"
 license = "MIT"
 license-files = ["LICENSE"]
-dependencies = ["gridstatus==0.36.0", "tzdata>=2026.1; sys_platform == 'win32'"]
+dependencies = [
+    "gridstatus==0.36.0",
+    "google-cloud-bigquery==3.45.2",
+    "tzdata>=2026.1; sys_platform == 'win32'",
+]
 
 [project.optional-dependencies]
 dev = [
@@ -33,6 +37,7 @@ packages = ["src/power_market_data"]
 include = [
     "/src",
     "/tests",
+    "/integration_tests",
     "/docs",
     "/AGENTS.md",
     "/PROJECT_BRIEF.md",
@@ -54,5 +59,5 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
 python_version = "3.12"
-files = ["src", "tests"]
+files = ["src", "tests", "integration_tests"]
 strict = true

@@ -1,7 +1,7 @@
 # Implementation plan
 
-Phases 0 and 1 are complete within their documented scope. Phases 2–6 are
-planned and unimplemented; Phase 2 has not started.
+Phases 0–2 are complete within their documented scope. Phases 3–6 are
+planned and unimplemented; Phase 3 has not started.
 Each phase must meet its definition of done before the next begins. Tests that
 require an external service must be explicit and separate from offline unit CI.
 
@@ -38,6 +38,11 @@ dates are intentionally rejected because the pinned parser guesses an offset.
   and analytical marts.
 
 ## Phase 2 — revision-aware BigQuery persistence
+
+Status: Complete within the [warehouse contract](docs/contracts/warehouse.md).
+[Live verification](docs/verification/phase2.md) demonstrates real CAISO persistence,
+unchanged reruns, disposable revision/recovery tests and cleanup.
+See [ADR 005](docs/adr/005-bigquery-persistence.md) for concurrency and clock limits.
 
 - **Purpose:** Persist observations without losing changes or inventing history.
 - **Deliverables:** Raw/version schemas, ingestion manifests and provenance,
