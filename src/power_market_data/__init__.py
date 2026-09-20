@@ -1,4 +1,4 @@
-"""Package foundation; market-data functionality is planned for later phases."""
+"""CAISO observations with explicit time, identity and source contracts."""
 
 from importlib.metadata import version
 

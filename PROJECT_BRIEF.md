@@ -13,9 +13,9 @@ how reliable data supports decisions about actual power systems and markets.
 
 The engineering focus is explicit interval semantics, source provenance,
 idempotent reruns, preserved revisions, and analysis bounded by what the system
-knew at a given time. Python ingestion, BigQuery storage, dbt transformations,
-and Flyte orchestration are planned; Phase 0 establishes only their contracts
-and development tooling.
+knew at a given time. Phase 1 implements a narrow Python CAISO adapter and
+normalization boundary.
+BigQuery storage, dbt transformations and Flyte orchestration remain planned.
 
 ## Not in scope
 

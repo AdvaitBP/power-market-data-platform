@@ -1,6 +1,7 @@
 # Implementation plan
 
-Phase 0 is the current scope. Phases 1–6 are planned and unimplemented.
+Phases 0 and 1 are complete within their documented scope. Phases 2–6 are
+planned and unimplemented; Phase 2 has not started.
 Each phase must meet its definition of done before the next begins. Tests that
 require an external service must be explicit and separate from offline unit CI.
 
@@ -18,6 +19,11 @@ require an external service must be explicit and separate from offline unit CI.
   orchestration.
 
 ## Phase 1 — CAISO source adapters and normalization
+
+Status: Complete within the [source contract](docs/sources/caiso.md). Both live
+products were fetched for 2026-08-01 and normalized; offline fixtures, explicit
+grain/time/identity contracts, and source limits are documented. Load fall-back
+dates are intentionally rejected because the pinned parser guesses an offset.
 
 - **Purpose:** Turn explicitly selected CAISO products into documented observations.
 - **Deliverables:** A narrow source/product scope, source-access terms and
