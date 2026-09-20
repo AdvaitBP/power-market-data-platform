@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling==1.32.3"]
+build-backend = "hatchling.build"
+
+[project]
+name = "power-market-data-platform"
+version = "0.1.0"
+description = "Revision-aware data platform for ingesting, validating, modeling, and analyzing U.S. wholesale power-market data."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+    "build==1.6.1",
+    "mypy==2.3.1",
+    "pytest==9.1.1",
+    "ruff==0.16.8",
+]
+
+[project.urls]
+Repository = "https://github.com/AdvaitBP/power-market-data-platform"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/power_market_data"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/docs",
+    "/AGENTS.md",
+    "/PROJECT_BRIEF.md",
+    "/PLANS.md",
+    "/.env.example",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-config --strict-markers --import-mode=importlib"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.12"
+files = ["src", "tests"]
+strict = true
