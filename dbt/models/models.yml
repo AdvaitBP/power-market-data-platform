@@ -1,0 +1,560 @@
+version: 2
+models:
+  - name: stg_ingestion_runs
+    description: "One row per run_id; all statuses retained for diagnostics. Counts are rows, byte metrics are bytes, clocks are UTC, requested_date is Pacific. Optional diagnostics/counts are NULL when unknown. This is operational history, not eligible market state."
+    columns:
+      - name: run_id
+        data_type: string
+      - name: request_id
+        data_type: string
+      - name: source
+        data_type: string
+      - name: product
+        data_type: string
+      - name: requested_date
+        data_type: date
+      - name: started_at
+        data_type: timestamp
+      - name: status
+        data_type: string
+        data_tests:
+          - accepted_values:
+              arguments: {"values":["STARTED","COMMITTED","SUCCEEDED","FAILED"]}
+      - name: commit_completed
+        data_type: bool
+      - name: package_version
+        data_type: string
+      - name: library_version
+        data_type: string
+      - name: warehouse_schema
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: requested_location
+        data_type: string
+      - name: completed_at
+        data_type: timestamp
+      - name: knowledge_at
+        data_type: timestamp
+      - name: rows_fetched
+        data_type: int64
+      - name: rows_normalized
+        data_type: int64
+      - name: rows_accepted
+        data_type: int64
+      - name: rows_rejected
+        data_type: int64
+      - name: new_contents
+        data_type: int64
+      - name: new_transitions
+        data_type: int64
+      - name: batch_hash
+        data_type: string
+      - name: error_class
+        data_type: string
+      - name: error_message
+        data_type: string
+      - name: commit_job_id
+        data_type: string
+      - name: commit_sequence
+        data_type: int64
+      - name: query_bytes_processed
+        data_type: int64
+      - name: query_bytes_billed
+        data_type: int64
+      - name: code_revision
+        data_type: string
+  - name: stg_lmp_contents
+    description: "One row per content_id, preserving all distinct lmp states whose first_run_id is SUCCEEDED. Values are USD/MWh; UTC intervals and Pacific market_date are unchanged. first_seen_at must be populated after success. No content value is nullable or defaulted."
+    columns:
+      - name: content_id
+        data_type: string
+      - name: logical_key
+        data_type: string
+      - name: content_hash
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: source
+        data_type: string
+      - name: product
+        data_type: string
+      - name: source_dataset
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: interval_start_utc
+        data_type: timestamp
+      - name: interval_end_utc
+        data_type: timestamp
+      - name: unit
+        data_type: string
+        data_tests:
+          - accepted_values:
+              arguments: {"values":["USD/MWh"]}
+      - name: retrieved_at_utc
+        data_type: timestamp
+      - name: source_url
+        data_type: string
+      - name: source_method
+        data_type: string
+      - name: library_version
+        data_type: string
+      - name: first_run_id
+        data_type: string
+      - name: first_seen_at
+        data_type: timestamp
+        data_tests:
+          - not_null
+      - name: market
+        data_type: string
+      - name: location
+        data_type: string
+      - name: lmp
+        data_type: numeric
+      - name: energy
+        data_type: numeric
+      - name: congestion
+        data_type: numeric
+      - name: loss
+        data_type: numeric
+  - name: stg_lmp_state_transitions
+    description: "One row per transition_id from a SUCCEEDED run. All accepted lmp occurrences remain; ordinal and commit_sequence are counts/order, known_at and retrieved_at_utc are UTC. known_at must be non-null; there is no market value in this model."
+    columns:
+      - name: transition_id
+        data_type: string
+      - name: run_id
+        data_type: string
+      - name: logical_key
+        data_type: string
+      - name: content_id
+        data_type: string
+      - name: content_hash
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: interval_start_utc
+        data_type: timestamp
+      - name: ordinal
+        data_type: int64
+      - name: commit_sequence
+        data_type: int64
+      - name: retrieved_at_utc
+        data_type: timestamp
+      - name: known_at
+        data_type: timestamp
+        data_tests:
+          - not_null
+  - name: int_lmp_revision_history
+    description: "One row per accepted lmp transition_id joined to preserved content whose original run also SUCCEEDED. Reappearance repeats content_id but retains a distinct transition_id. Values are USD/MWh, clocks UTC, market_date Pacific. All selected values/clocks are required. This is occurrence history, not unique content history."
+    columns:
+      - name: content_id
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments: {"to":"ref('stg_lmp_contents')","field":"content_id"}
+      - name: logical_key
+        data_type: string
+      - name: content_hash
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: source
+        data_type: string
+      - name: product
+        data_type: string
+      - name: source_dataset
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: interval_start_utc
+        data_type: timestamp
+      - name: interval_end_utc
+        data_type: timestamp
+      - name: unit
+        data_type: string
+      - name: content_retrieved_at_utc
+        data_type: timestamp
+      - name: source_url
+        data_type: string
+      - name: source_method
+        data_type: string
+      - name: library_version
+        data_type: string
+      - name: first_run_id
+        data_type: string
+      - name: first_seen_at
+        data_type: timestamp
+      - name: market
+        data_type: string
+      - name: location
+        data_type: string
+      - name: lmp
+        data_type: numeric
+      - name: energy
+        data_type: numeric
+      - name: congestion
+        data_type: numeric
+      - name: loss
+        data_type: numeric
+      - name: transition_id
+        data_type: string
+        data_tests:
+          - unique
+          - not_null
+      - name: state_run_id
+        data_type: string
+      - name: state_ordinal
+        data_type: int64
+      - name: commit_sequence
+        data_type: int64
+      - name: state_known_at
+        data_type: timestamp
+      - name: state_retrieved_at_utc
+        data_type: timestamp
+  - name: fct_hourly_lmp
+    description: "One row represents the latest successfully accepted CAISO day-ahead hourly LMP state for one supported trading hub and one UTC hourly interval. Unique key: logical_key. Current state follows transition order. Values are USD/MWh; UTC intervals and Pacific market_date are preserved. Both content and transition origin runs must SUCCEED. All selected values/clocks are required."
+    columns:
+      - name: content_id
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments: {"to":"ref('stg_lmp_contents')","field":"content_id"}
+      - name: logical_key
+        data_type: string
+        data_tests:
+          - not_null
+          - unique
+      - name: content_hash
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: source
+        data_type: string
+      - name: product
+        data_type: string
+      - name: source_dataset
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: interval_start_utc
+        data_type: timestamp
+      - name: interval_end_utc
+        data_type: timestamp
+      - name: unit
+        data_type: string
+      - name: content_retrieved_at_utc
+        data_type: timestamp
+      - name: source_url
+        data_type: string
+      - name: source_method
+        data_type: string
+      - name: library_version
+        data_type: string
+      - name: first_run_id
+        data_type: string
+      - name: first_seen_at
+        data_type: timestamp
+      - name: market
+        data_type: string
+      - name: location
+        data_type: string
+      - name: lmp
+        data_type: numeric
+      - name: energy
+        data_type: numeric
+      - name: congestion
+        data_type: numeric
+      - name: loss
+        data_type: numeric
+      - name: transition_id
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments: {"to":"ref('int_lmp_revision_history')","field":"transition_id"}
+      - name: state_run_id
+        data_type: string
+      - name: state_ordinal
+        data_type: int64
+      - name: commit_sequence
+        data_type: int64
+      - name: state_known_at
+        data_type: timestamp
+      - name: state_retrieved_at_utc
+        data_type: timestamp
+  - name: stg_load_contents
+    description: "One row per content_id, preserving all distinct load states whose first_run_id is SUCCEEDED. Values are MW; UTC intervals and Pacific market_date are unchanged. first_seen_at must be populated after success. No content value is nullable or defaulted."
+    columns:
+      - name: content_id
+        data_type: string
+      - name: logical_key
+        data_type: string
+      - name: content_hash
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: source
+        data_type: string
+      - name: product
+        data_type: string
+      - name: source_dataset
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: interval_start_utc
+        data_type: timestamp
+      - name: interval_end_utc
+        data_type: timestamp
+      - name: unit
+        data_type: string
+        data_tests:
+          - accepted_values:
+              arguments: {"values":["MW"]}
+      - name: retrieved_at_utc
+        data_type: timestamp
+      - name: source_url
+        data_type: string
+      - name: source_method
+        data_type: string
+      - name: library_version
+        data_type: string
+      - name: first_run_id
+        data_type: string
+      - name: first_seen_at
+        data_type: timestamp
+        data_tests:
+          - not_null
+      - name: area
+        data_type: string
+      - name: load
+        data_type: numeric
+  - name: stg_load_state_transitions
+    description: "One row per transition_id from a SUCCEEDED run. All accepted load occurrences remain; ordinal and commit_sequence are counts/order, known_at and retrieved_at_utc are UTC. known_at must be non-null; there is no market value in this model."
+    columns:
+      - name: transition_id
+        data_type: string
+      - name: run_id
+        data_type: string
+      - name: logical_key
+        data_type: string
+      - name: content_id
+        data_type: string
+      - name: content_hash
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: interval_start_utc
+        data_type: timestamp
+      - name: ordinal
+        data_type: int64
+      - name: commit_sequence
+        data_type: int64
+      - name: retrieved_at_utc
+        data_type: timestamp
+      - name: known_at
+        data_type: timestamp
+        data_tests:
+          - not_null
+  - name: int_load_revision_history
+    description: "One row per accepted load transition_id joined to preserved content whose original run also SUCCEEDED. Reappearance repeats content_id but retains a distinct transition_id. Values are MW, clocks UTC, market_date Pacific. All selected values/clocks are required. This is occurrence history, not unique content history."
+    columns:
+      - name: content_id
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments: {"to":"ref('stg_load_contents')","field":"content_id"}
+      - name: logical_key
+        data_type: string
+      - name: content_hash
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: source
+        data_type: string
+      - name: product
+        data_type: string
+      - name: source_dataset
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: interval_start_utc
+        data_type: timestamp
+      - name: interval_end_utc
+        data_type: timestamp
+      - name: unit
+        data_type: string
+      - name: content_retrieved_at_utc
+        data_type: timestamp
+      - name: source_url
+        data_type: string
+      - name: source_method
+        data_type: string
+      - name: library_version
+        data_type: string
+      - name: first_run_id
+        data_type: string
+      - name: first_seen_at
+        data_type: timestamp
+      - name: area
+        data_type: string
+      - name: load
+        data_type: numeric
+      - name: transition_id
+        data_type: string
+        data_tests:
+          - unique
+          - not_null
+      - name: state_run_id
+        data_type: string
+      - name: state_ordinal
+        data_type: int64
+      - name: commit_sequence
+        data_type: int64
+      - name: state_known_at
+        data_type: timestamp
+      - name: state_retrieved_at_utc
+        data_type: timestamp
+  - name: fct_system_load_5min
+    description: "One row represents the latest successfully accepted CAISO system-demand state for one five-minute UTC interval. Unique key: logical_key. Current state follows transition order. Values are MW, not MWh; UTC intervals and Pacific market_date are preserved. Both content and transition origin runs must SUCCEED. All selected values/clocks are required."
+    columns:
+      - name: content_id
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments: {"to":"ref('stg_load_contents')","field":"content_id"}
+      - name: logical_key
+        data_type: string
+        data_tests:
+          - not_null
+          - unique
+      - name: content_hash
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: source
+        data_type: string
+      - name: product
+        data_type: string
+      - name: source_dataset
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: interval_start_utc
+        data_type: timestamp
+      - name: interval_end_utc
+        data_type: timestamp
+      - name: unit
+        data_type: string
+      - name: content_retrieved_at_utc
+        data_type: timestamp
+      - name: source_url
+        data_type: string
+      - name: source_method
+        data_type: string
+      - name: library_version
+        data_type: string
+      - name: first_run_id
+        data_type: string
+      - name: first_seen_at
+        data_type: timestamp
+      - name: area
+        data_type: string
+      - name: load
+        data_type: numeric
+      - name: transition_id
+        data_type: string
+        data_tests:
+          - relationships:
+              arguments: {"to":"ref('int_load_revision_history')","field":"transition_id"}
+      - name: state_run_id
+        data_type: string
+      - name: state_ordinal
+        data_type: int64
+      - name: commit_sequence
+        data_type: int64
+      - name: state_known_at
+        data_type: timestamp
+      - name: state_retrieved_at_utc
+        data_type: timestamp
+  - name: mart_daily_lmp_summary
+    description: "One row per Pacific market_date and supported hub for the fixed CAISO day-ahead market. Composite unique key: market_date, location. Current observed prices are USD/MWh; counts are intervals. Only eligible current facts enter. No null outputs for an observed group; absent days have no row. Expected hours account for DST and do not assert completeness."
+    data_tests:
+      - unique_grain:
+          arguments:
+            columns: ["market_date","location"]
+    columns:
+      - name: source
+        data_type: string
+      - name: market
+        data_type: string
+      - name: location
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: observation_count
+        data_type: int64
+      - name: average_lmp_usd_per_mwh
+        data_type: numeric
+      - name: minimum_lmp_usd_per_mwh
+        data_type: numeric
+      - name: maximum_lmp_usd_per_mwh
+        data_type: numeric
+      - name: negative_price_interval_count
+        data_type: int64
+      - name: expected_hour_count
+        data_type: int64
+  - name: mart_ingestion_health
+    description: "One row per source, short product, requested Pacific date and requested location (NULL for load). Composite key is those four dimensions. All statuses deliberately contribute to run counts; only SUCCEEDED runs contribute accepted/new row counts and latest UTC knowledge time. latest_successful_knowledge_at is NULL without success. This operational aggregate is not a freshness SLA or market fact."
+    data_tests:
+      - unique_grain:
+          arguments:
+            columns: ["source","product","requested_date","requested_location"]
+    columns:
+      - name: source
+        data_type: string
+      - name: product
+        data_type: string
+      - name: requested_date
+        data_type: date
+      - name: requested_location
+        data_type: string
+      - name: run_count
+        data_type: int64
+      - name: succeeded_run_count
+        data_type: int64
+      - name: failed_run_count
+        data_type: int64
+      - name: started_run_count
+        data_type: int64
+      - name: unfinalized_run_count
+        data_type: int64
+      - name: latest_successful_knowledge_at
+        data_type: timestamp
+      - name: successful_rows_accepted
+        data_type: int64
+      - name: successful_new_contents
+        data_type: int64
+      - name: successful_new_transitions
+        data_type: int64

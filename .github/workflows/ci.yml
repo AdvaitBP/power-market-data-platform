@@ -15,7 +15,7 @@ jobs:
   validate:
     name: Python 3.12 / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 15
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -51,3 +51,22 @@ jobs:
           python -m pip install --force-reinstall --no-deps dist/*.whl
           python -I -c "import power_market_data; print(power_market_data.__version__)"
           python -m pytest
+      - name: Install isolated dbt tooling
+        run: |
+          python -m venv artifacts/dbt-core-venv
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            DBT_BIN=artifacts/dbt-core-venv/Scripts
+          else
+            DBT_BIN=artifacts/dbt-core-venv/bin
+          fi
+          "$DBT_BIN/python" -m pip install -r dbt/requirements.txt
+          "$DBT_BIN/python" -m pip check
+          "$DBT_BIN/python" dbt/tooling/check_cost_cap.py
+          cp dbt/profiles.example.yml dbt/profiles.yml
+          echo "DBT_BIN=$DBT_BIN" >> "$GITHUB_ENV"
+      - name: Parse dbt project without credentials
+        env:
+          GCP_PROJECT_ID: offline-project
+          GOOGLE_APPLICATION_CREDENTIALS: deliberately-missing-credentials.json
+          DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
+        run: '"$DBT_BIN/dbt" parse --project-dir dbt --profiles-dir dbt'

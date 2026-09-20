@@ -1,0 +1,14 @@
+# Copy to ignored dbt/profiles.yml. No secrets or account-specific paths.
+power_market_analytics:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: oauth
+      project: "{{ env_var('GCP_PROJECT_ID') }}"
+      dataset: "{{ env_var('BQ_ANALYTICS_DATASET', 'power_market_analytics') }}"
+      location: "{{ env_var('BQ_LOCATION', 'US') }}"
+      threads: 1
+      maximum_bytes_billed: 104857600
+      job_retries: 0
+      job_execution_timeout_seconds: 120
