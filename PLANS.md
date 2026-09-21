@@ -1,8 +1,7 @@
 # Implementation plan
 
-Phases 0–2 are complete within their documented scope. Phase 3 is implemented
-but incomplete: the controlled BigQuery build is blocked by the unchanged daily
-quota. Phases 4–6 are planned and unimplemented.
+Phases 0–3 are complete within their documented scope. Phases 4–6 are planned
+and unimplemented.
 Each phase must meet its definition of done before the next begins. Tests that
 require an external service must be explicit and separate from offline unit CI.
 
@@ -58,11 +57,12 @@ See [ADR 005](docs/adr/005-bigquery-persistence.md) for concurrency and clock li
 
 ## Phase 3 — dbt analytical warehouse
 
-Status: In progress; **not complete**. SQL models, contracts, offline tests and
-an opt-in controlled build exist. The live build failed on QueryUsagePerDay;
-its successful revision/merge/full-refresh and failed-contract demonstrations
-remain required. Do not merge or start Phase 4 before meeting the existing
-criterion below. See [verification](docs/verification/phase3.md).
+Status: Complete within documented scope, verified on 2026-09-21. The controlled
+native suite passed revision/reappearance, late-arrival, unsuccessful-run exclusion,
+incremental/full-refresh equality, deliberate failed-contract detection and repair.
+Two real builds, independent reconciliation and live catalog generation passed
+without changing cost safeguards. The earlier quota failure is preserved in the
+[verification record](docs/verification/phase3.md). Phase 4 has not started.
 
 - **Purpose:** Express warehouse transformations and their contracts in SQL.
 - **Deliverables:** dbt sources, staging/intermediate models, initial facts with

@@ -1,7 +1,7 @@
 # ADR 006 — dbt transformations over accepted transition history
 
 - Date: 2026-09-20
-- Status: Accepted design; BigQuery execution verification is recorded separately.
+- Status: Accepted; native BigQuery execution verified on 2026-09-21.
 - Scope: Phase 3. ADRs 001–005 and raw schemas remain unchanged.
 
 ## Context
@@ -33,8 +33,10 @@ installation behaves identically or dismiss GA based on old preview documentatio
 The evaluated job was adbc-71926d60-e58a-482c-8703-b61085608905 in US.
 Its BigQuery configuration omitted the cap and its execution was rejected by
 the unchanged daily custom quota. No further v2 queries were submitted after
-inspection. The Python adapter's job-configuration path is checked locally;
-successful end-to-end execution still requires quota availability.
+inspection. The selected Python adapter passed both its offline submission check
+and native verification on 2026-09-21: all 330 completion-run query jobs carried
+maximumBytesBilled=104857600. See the [verification record](../verification/phase3.md)
+for the controlled suite, real builds and unchanged safeguards.
 
 Sources:
 [official installation](https://docs.getdbt.com/docs/local/install-dbt),
@@ -52,8 +54,9 @@ Two intermediate views preserve every accepted transition and its content.
 Two incremental facts resolve current state directly from those views, avoiding
 a redundant second pair of current-state views. Their grain is one logical key,
 selected by descending per-key ordinal, commit_sequence and transition_id.
-Ordering is deterministic; malformed duplicate sequences are contract failures,
-not evidence of new market states.
+Ordering is deterministic and relies on the raw writer's documented per-key
+and global ordering. Tie-breakers do not repair malformed ordering introduced
+by manual edits outside that protocol.
 
 | Transition | Referenced content | Content first known | Current state |
 | --- | --- | --- | --- |

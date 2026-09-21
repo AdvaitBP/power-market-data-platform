@@ -98,6 +98,12 @@ class DbtWarehouse:
         log = ROOT / "artifacts" / f"dbt-integration-{len(self.report['commands'])}.log"
         log.write_text(result.stdout + result.stderr, encoding="utf-8")
         print(result.stdout, result.stderr)
+        results_path = ROOT / "dbt/target/run_results.json"
+        if results_path.exists() and arguments[0] in ("build", "run", "test"):
+            results = json.loads(results_path.read_text("utf-8"))
+            self.report["commands"][-1]["results"] = [
+                {"id": row["unique_id"], "status": row["status"]} for row in results["results"]
+            ]
         if expected_failure:
             assert result.returncode != 0, "deliberately broken data contract was not surfaced"
             results = json.loads((ROOT / "dbt/target/run_results.json").read_text("utf-8"))
@@ -156,7 +162,10 @@ def warehouse() -> Iterator[DbtWarehouse]:
             if actual.labels.get("owner") != suffix:
                 raise RuntimeError("refusing cleanup: disposable dataset ownership changed")
             client.delete_dataset(identifier, delete_contents=True, not_found_ok=True)
+        remaining = [dataset.dataset_id for dataset in client.list_datasets()]
+        assert not set(owned).intersection(remaining), "owned disposable dataset still exists"
         store.report["cleanup"] = True
+        store.report["remaining_datasets"] = remaining
         jobs = list(client.list_jobs(min_creation_time=started))
         # Parent query statistics already include script children; do not double count.
         queries = [
@@ -164,6 +173,8 @@ def warehouse() -> Iterator[DbtWarehouse]:
         ]
         store.report.update(
             query_jobs=len(queries),
+            failed_query_jobs=sum(bool(job.error_result) for job in queries),
+            query_caps=sorted({str(job.maximum_bytes_billed) for job in queries}),
             bytes_processed=sum(job.total_bytes_processed or 0 for job in queries),
             bytes_billed=sum(job.total_bytes_billed or 0 for job in queries),
         )

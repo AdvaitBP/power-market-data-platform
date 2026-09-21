@@ -38,10 +38,36 @@ def test_revision_incremental_and_full_refresh(warehouse: DbtWarehouse) -> None:
             counts = warehouse.query(f"""
                 select
                   (select count(*) from `{contents_table}`) as contents,
-                  (select count(*) from `{history_table}`) as transitions
+                  (select count(*) from `{history_table}`) as transitions,
+                  array(select as struct h.*, r.status as originating_status
+                        from `{history_table}` as h
+                        join `{warehouse.raw.table("ingestion_runs")}` as r
+                          on h.state_run_id = r.run_id
+                        order by h.logical_key, h.state_ordinal) as history
             """)
             assert counts[0]["contents"] == (1, 1, 2, 2, 3)[index]
             assert counts[0]["transitions"] == (1, 1, 2, 3, 4)[index]
+            history = counts[0]["history"]
+            assert len(history) == counts[0]["transitions"]
+            assert {row["originating_status"] for row in history} == {"SUCCEEDED"}
+            assert all(
+                row["transition_id"] in {h["transition_id"] for h in history} for row in rows
+            )
+            if step == "reappearance":
+                assert [row[product] for row in history] == [
+                    Decimal("10"),
+                    Decimal("20"),
+                    Decimal("10"),
+                ]
+                assert history[0]["content_id"] == history[2]["content_id"]
+                assert history[0]["first_seen_at"] == history[2]["first_seen_at"]
+                assert history[0]["state_known_at"] < history[2]["state_known_at"]
+            warehouse.report.setdefault("observed_states", {}).setdefault(step, {})[product] = {
+                "contents": counts[0]["contents"],
+                "transitions": counts[0]["transitions"],
+                "history": history,
+                "facts": rows,
+            }
         warehouse.report.setdefault("scenarios_passed", []).append(step)
 
     before = {
@@ -55,6 +81,8 @@ def test_revision_incremental_and_full_refresh(warehouse: DbtWarehouse) -> None:
     }
     assert before == after
     warehouse.report["full_refresh_equal"] = True
+    warehouse.report["incremental_facts"] = before
+    warehouse.report["full_refresh_facts"] = after
 
     # BigQuery date/DST semantics, using constants rather than a public data scan.
     result = warehouse.query("""

@@ -61,7 +61,7 @@ state_retrieved_at_utc belongs to this occurrence. first_seen_at is the original
 successful durable knowledge time of the content; state_known_at is this
 transition's successful durable knowledge time. Neither is CAISO publication time.
 
-## AÃ¢â€ â€™BÃ¢â€ â€™A and incremental processing
+## A→B→A and incremental processing
 
 | Retrieval | Unique accepted contents | Occurrences | Fact value |
 | --- | --- | --- | --- |
@@ -140,7 +140,8 @@ are required. profiles.yml, target/, logs/, tool environment and generated docs
 remain ignored. On Linux, use artifacts/dbt-core-venv/bin/dbt and .venv/bin/python.
 
 The selected adapter forwards the profile's 100 MiB query cap (verified by an
-offline native-client submission check), uses one thread and a distinct configurable
+offline native-client submission check and observed live job configurations),
+uses one thread and a distinct configurable
 analytics dataset in US. A schema-name guard rejects the configured raw dataset
 and the verified default raw dataset as output targets. This prevents a common
 configuration mistake; it does not replace IAM access controls or protect against
@@ -172,8 +173,8 @@ Opt-in controlled verification:
 ```
 
 It creates uniquely named pmd_dbt_it_raw_* and pmd_dbt_it_analytics_* datasets with
-ownership labels. The single end-to-end test covers both products across AÃ¢â€ â€™A,
-AÃ¢â€ â€™B, AÃ¢â€ â€™BÃ¢â€ â€™A, late arrivals and adversarial non-successful rows; executes real dbt
+ownership labels. The single end-to-end test covers both products across A→A,
+A→B, A→B→A, late arrivals and adversarial non-successful rows; executes real dbt
 build/merge/unit/data tests; compares full refresh; intentionally duplicates a
 disposable fact to require a data-test failure; then repairs it and generates docs.
 The raw fixture builder reuses Phase 1/2 identities. Synthetic prices never enter
@@ -197,5 +198,6 @@ For lineage documentation without warehouse access, after parse run
 This generates an intentionally empty catalog and graph documentation, not live
 warehouse statistics. `dbt/tooling/check_cost_cap.py` runs in the isolated dbt
 interpreter and guards the adapter-to-client cap configuration without networking.
+Run this check before submitting live dbt work; do not proceed if it fails.
 The integration sequence runs the full suite initially and at full refresh;
 intervening revisions run only the two facts to limit repeated billable tests.

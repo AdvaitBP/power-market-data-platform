@@ -14,7 +14,7 @@ revisions, idempotent reruns, and visible data-quality failures.
 
 ## Current status
 
-**Phase 3 implementation: awaiting quota-limited BigQuery verification.** The existing CAISO adapter
+**Phase 3: verified dbt analytical warehouse.** The existing CAISO adapter
 fetches hourly day-ahead LMP at NP15/SP15/ZP26 and five-minute system load.
 Normalized observations can now be persisted with ingestion manifests, distinct
 source contents, ordered state transitions and explicit knowledge times.
@@ -38,14 +38,17 @@ real-day counts, an unchanged rerun, recovery and cost metadata. Windows/Linux C
 remains offline after dependency installation.
 The standalone dbt project now contains accepted revision histories, incremental
 current LMP/load facts and daily-price/ingestion summaries. Offline SQL tests and
-a credential-free project parse pass. The controlled live build was blocked by
-the existing daily BigQuery quota, so Phase 3 is **not complete or merged** and
-no live analytical model counts are claimed. See the
+a credential-free project parse pass. Controlled BigQuery verification covers
+unchanged repeats, revisions, reappearance, late arrivals, unsuccessful-run
+exclusion and incremental/full-refresh equality. Real builds and reconciliation
+passed with 24 hourly NP15 LMP facts and 288 five-minute load facts; an unchanged
+second build preserved every output row. The live catalog describes 11 models
+and 5 raw sources. The earlier quota-blocked attempt remains documented. See the
 [analytics contract](docs/contracts/analytics.md),
 [toolchain decision](docs/adr/006-dbt-analytical-state.md) and
 [Phase 3 verification](docs/verification/phase3.md).
-There is no Flyte, automated multi-date backfill, full Data Quality Observatory,
-as-of consumer analysis or capture-price analysis.
+There is no Flyte, automated multi-date backfill, final Data Quality Observatory,
+as-of consumer query or capture-price analysis.
 
 ## Architecture and planned layers
 
@@ -53,7 +56,7 @@ as-of consumer analysis or capture-price analysis.
 flowchart LR
     C["CAISO public data"] --> P["Python: implemented retrieval, normalization, validation"]
     P --> B["BigQuery: implemented contents, transitions, runs"]
-    B --> D["dbt: implemented models; live verification pending"]
+    B --> D["dbt: verified SQL models, tests and lineage"]
     D --> A["Planned quality, as-of and capture-price analysis"]
     F["Planned Flyte: dependencies, retries, backfills"] -. orchestrates .-> P
     F -. orchestrates .-> D
@@ -80,7 +83,7 @@ and [architecture decisions](docs/adr/).
 | 0 | Repository/tooling foundation — complete |
 | 1 | CAISO source adapters and normalization — complete within documented limits |
 | 2 | Revision-aware BigQuery persistence — complete within documented limits |
-| 3 | dbt analytical warehouse — implemented, live verification blocked; incomplete |
+| 3 | dbt analytical warehouse — complete within documented limits |
 | 4 | Flyte orchestration and backfills |
 | 5 | Data-quality/as-of/capture-price analytics |
 | 6 | Public portfolio/reproducibility audit |
@@ -226,8 +229,9 @@ schema, transport and usage limitations. Fixtures are synthetic and ordinary
 tests make no source or cloud calls. Durable contents and observed transitions
 exist, but no raw response archive or verified source-deletion signal exists.
 Writers must follow the documented transaction protocol; finalization can require
-explicit recovery. dbt SQL exists, but live materialization, revision/full-refresh
-verification and real-data analytics remain pending quota availability. No Flyte,
+explicit recovery. dbt facts depend on ordered raw finalization and one dbt writer;
+the graph is not an atomic snapshot of concurrent ingestion. Current data covers
+one real market day, and summaries do not establish source completeness. No Flyte,
 automated backfills, final Data Quality Observatory, as-of consumer query or
 capture-price analysis is implemented.
 Direct development tools are pinned; transitive dependencies are not fully locked.
