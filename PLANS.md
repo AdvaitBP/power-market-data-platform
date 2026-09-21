@@ -62,7 +62,8 @@ native suite passed revision/reappearance, late-arrival, unsuccessful-run exclus
 incremental/full-refresh equality, deliberate failed-contract detection and repair.
 Two real builds, independent reconciliation and live catalog generation passed
 without changing cost safeguards. The earlier quota failure is preserved in the
-[verification record](docs/verification/phase3.md). Phase 4 has not started.
+[verification record](docs/verification/phase3.md). Phase 4 is in progress; native local
+orchestration passes, with cloud verification pending.
 
 - **Purpose:** Express warehouse transformations and their contracts in SQL.
 - **Deliverables:** dbt sources, staging/intermediate models, initial facts with
@@ -75,6 +76,10 @@ without changing cost safeguards. The earlier quota failure is preserved in the
 - **Deferred:** Flyte schedules, broad mart coverage, and analytical conclusions.
 
 ## Phase 4 — Flyte orchestration and backfills
+
+Status: **in progress, not complete**. See the
+[Phase 4 verification record](docs/verification/phase4.md) for local results and
+the remaining cloud gates.
 
 - **Purpose:** Coordinate bounded, repeatable runs without embedding domain rules.
 - **Deliverables:** Tasks calling existing adapters/storage and dbt interfaces,
