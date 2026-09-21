@@ -1,0 +1,27 @@
+name: power_market_analytics
+version: '0.1.0'
+config-version: 2
+require-dbt-version: ['>=1.12.5', '<1.13.0']
+profile: power_market_analytics
+model-paths: ['models']
+test-paths: ['tests']
+macro-paths: ['macros']
+analysis-paths: ['analyses']
+clean-targets: ['target', 'dbt_packages']
+models:
+  power_market_analytics:
+    +materialized: view
+    +persist_docs:
+      relation: true
+      columns: true
+    marts:
+      facts:
+        +materialized: incremental
+        +incremental_strategy: merge
+        +unique_key: logical_key
+        +on_schema_change: fail
+        +contract:
+          enforced: true
+data_tests:
+  +severity: error
+  +store_failures: false

@@ -1,0 +1,337 @@
+version: 2
+sources:
+  - name: raw
+    description: "Phase 2 preserved CAISO observations and runs. Never write to these sources."
+    database: "{{ env_var('GCP_PROJECT_ID') }}"
+    schema: "{{ env_var('BQ_RAW_DATASET', 'power_market_raw') }}"
+    tables:
+      - name: ingestion_runs
+        description: "One bounded ingestion attempt, including failures and unfinished runs."
+        columns:
+          - name: run_id
+            data_type: string
+            description: "Stable identifier of one bounded ingestion attempt."
+            data_tests:
+              - not_null
+              - unique
+          - name: request_id
+            data_type: string
+            description: "Deterministic bounded product/date/hub request identity."
+          - name: source
+            data_type: string
+            description: "Underlying operator CAISO."
+          - name: product
+            data_type: string
+            description: "Product identifier; manifests use lmp/load, contents use the Phase 1 product."
+          - name: requested_date
+            data_type: date
+            description: "Requested Pacific market date, not the ingestion date."
+          - name: started_at
+            data_type: timestamp
+            description: "UTC operational start marker for the attempted ingestion."
+          - name: status
+            data_type: string
+            description: "STARTED, COMMITTED, SUCCEEDED or FAILED; only SUCCEEDED supplies eligible facts."
+          - name: commit_completed
+            data_type: bool
+            description: "True when the data transaction durably committed, even before finalization."
+          - name: package_version
+            data_type: string
+            description: "Python project version used by ingestion."
+          - name: library_version
+            data_type: string
+            description: "Source-library version recorded by ingestion."
+          - name: warehouse_schema
+            data_type: string
+            description: "Raw contract version, currently warehouse/v1."
+          - name: logical_key_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-key/v1."
+          - name: content_hash_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-content/v1."
+          - name: requested_location
+            data_type: string
+            description: "Trading hub for LMP; NULL for system load."
+          - name: completed_at
+            data_type: timestamp
+            description: "Operational completion marker; not the durable-acceptance clock."
+          - name: knowledge_at
+            data_type: timestamp
+            description: "Conservative successful data-job end time; NULL before success or on failure."
+          - name: rows_fetched
+            data_type: int64
+            description: "Normalized adapter-return count on success; unknown counts remain NULL on failure."
+          - name: rows_normalized
+            data_type: int64
+            description: "Successfully normalized count, or NULL when unavailable."
+          - name: rows_accepted
+            data_type: int64
+            description: "Accepted rows including unchanged observations; zero on confirmed failure."
+          - name: rows_rejected
+            data_type: int64
+            description: "Zero for successful all-or-nothing batches; NULL when unknown."
+          - name: new_contents
+            data_type: int64
+            description: "Number of newly preserved content states; NULL when unconfirmed."
+          - name: new_transitions
+            data_type: int64
+            description: "Number of newly accepted material state occurrences; NULL when unconfirmed."
+          - name: batch_hash
+            data_type: string
+            description: "Digest of the accepted key/hash set, excluding retrieval metadata."
+          - name: error_class
+            data_type: string
+            description: "Sanitized failure category; NULL on success."
+          - name: error_message
+            data_type: string
+            description: "Credential-free diagnostic category; NULL on success."
+          - name: commit_job_id
+            data_type: string
+            description: "BigQuery job identifier used for reconciliation."
+          - name: commit_sequence
+            data_type: int64
+            description: "Phase 2 dataset-wide commit order; the incremental watermark."
+          - name: query_bytes_processed
+            data_type: int64
+            description: "Server-reported data-commit job processed bytes, when available."
+          - name: query_bytes_billed
+            data_type: int64
+            description: "Server-reported billed query units; not a dollar charge."
+          - name: code_revision
+            data_type: string
+            description: "Optional ingestion-code revision metadata."
+      - name: lmp_contents
+        description: "One unique LMP logical-key/content-hash state. first_seen_at can be NULL before finalization."
+        columns:
+          - name: content_id
+            data_type: string
+            description: "Stable identity of a preserved logical-key/content-hash state."
+            data_tests:
+              - not_null
+              - unique
+          - name: logical_key
+            data_type: string
+            description: "Unchanged Phase 1 observation-key/v1 SHA-256 identity."
+          - name: content_hash
+            data_type: string
+            description: "Unchanged Phase 1 observation-content/v1 digest; not an ordering field."
+          - name: logical_key_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-key/v1."
+          - name: content_hash_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-content/v1."
+          - name: source
+            data_type: string
+            description: "Underlying operator CAISO."
+          - name: product
+            data_type: string
+            description: "Product identifier; manifests use lmp/load, contents use the Phase 1 product."
+          - name: source_dataset
+            data_type: string
+            description: "Upstream dataset identifier supplied by the existing adapter."
+          - name: market_date
+            data_type: date
+            description: "Pacific operating date preserved from raw; never a UTC date cast."
+          - name: interval_start_utc
+            data_type: timestamp
+            description: "Inclusive timezone-aware UTC interval start."
+          - name: interval_end_utc
+            data_type: timestamp
+            description: "Exclusive UTC interval end."
+          - name: unit
+            data_type: string
+            description: "USD/MWh for prices or MW for average system demand."
+          - name: retrieved_at_utc
+            data_type: timestamp
+            description: "UTC retrieval time, distinct from durable knowledge time."
+          - name: source_url
+            data_type: string
+            description: "Preserved source endpoint provenance."
+          - name: source_method
+            data_type: string
+            description: "Preserved gridstatus access method."
+          - name: library_version
+            data_type: string
+            description: "Source-library version recorded by ingestion."
+          - name: first_run_id
+            data_type: string
+            description: "Run that first accepted this unique content."
+          - name: first_seen_at
+            data_type: timestamp
+            description: "Original conservative durable-acceptance bound; unchanged when A reappears."
+          - name: market
+            data_type: string
+            description: "DAY_AHEAD_HOURLY; this warehouse does not generalize across other markets."
+          - name: location
+            data_type: string
+            description: "One of the three supported CAISO trading hubs."
+          - name: lmp
+            data_type: numeric
+            description: "Published total LMP in USD/MWh; negatives are valid."
+          - name: energy
+            data_type: numeric
+            description: "Exported energy component in USD/MWh."
+          - name: congestion
+            data_type: numeric
+            description: "Exported congestion component in USD/MWh."
+          - name: loss
+            data_type: numeric
+            description: "Exported loss component in USD/MWh; no component-sum identity is assumed."
+      - name: lmp_state_transitions
+        description: "One material LMP state occurrence; only a SUCCEEDED originating run makes it eligible."
+        columns:
+          - name: transition_id
+            data_type: string
+            description: "Identity of one material state occurrence; reappearance has a new ID."
+            data_tests:
+              - not_null
+              - unique
+          - name: run_id
+            data_type: string
+            description: "Stable identifier of one bounded ingestion attempt."
+          - name: logical_key
+            data_type: string
+            description: "Unchanged Phase 1 observation-key/v1 SHA-256 identity."
+          - name: content_id
+            data_type: string
+            description: "Stable identity of a preserved logical-key/content-hash state."
+          - name: content_hash
+            data_type: string
+            description: "Unchanged Phase 1 observation-content/v1 digest; not an ordering field."
+          - name: logical_key_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-key/v1."
+          - name: content_hash_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-content/v1."
+          - name: market_date
+            data_type: date
+            description: "Pacific operating date preserved from raw; never a UTC date cast."
+          - name: interval_start_utc
+            data_type: timestamp
+            description: "Inclusive timezone-aware UTC interval start."
+          - name: ordinal
+            data_type: int64
+            description: "Per-logical-observation transition order."
+          - name: commit_sequence
+            data_type: int64
+            description: "Phase 2 dataset-wide commit order; the incremental watermark."
+          - name: retrieved_at_utc
+            data_type: timestamp
+            description: "UTC retrieval time, distinct from durable knowledge time."
+          - name: known_at
+            data_type: timestamp
+            description: "Successful data-job completion bound for this transition."
+      - name: load_contents
+        description: "One unique load logical-key/content-hash state. first_seen_at can be NULL before finalization."
+        columns:
+          - name: content_id
+            data_type: string
+            description: "Stable identity of a preserved logical-key/content-hash state."
+            data_tests:
+              - not_null
+              - unique
+          - name: logical_key
+            data_type: string
+            description: "Unchanged Phase 1 observation-key/v1 SHA-256 identity."
+          - name: content_hash
+            data_type: string
+            description: "Unchanged Phase 1 observation-content/v1 digest; not an ordering field."
+          - name: logical_key_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-key/v1."
+          - name: content_hash_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-content/v1."
+          - name: source
+            data_type: string
+            description: "Underlying operator CAISO."
+          - name: product
+            data_type: string
+            description: "Product identifier; manifests use lmp/load, contents use the Phase 1 product."
+          - name: source_dataset
+            data_type: string
+            description: "Upstream dataset identifier supplied by the existing adapter."
+          - name: market_date
+            data_type: date
+            description: "Pacific operating date preserved from raw; never a UTC date cast."
+          - name: interval_start_utc
+            data_type: timestamp
+            description: "Inclusive timezone-aware UTC interval start."
+          - name: interval_end_utc
+            data_type: timestamp
+            description: "Exclusive UTC interval end."
+          - name: unit
+            data_type: string
+            description: "USD/MWh for prices or MW for average system demand."
+          - name: retrieved_at_utc
+            data_type: timestamp
+            description: "UTC retrieval time, distinct from durable knowledge time."
+          - name: source_url
+            data_type: string
+            description: "Preserved source endpoint provenance."
+          - name: source_method
+            data_type: string
+            description: "Preserved gridstatus access method."
+          - name: library_version
+            data_type: string
+            description: "Source-library version recorded by ingestion."
+          - name: first_run_id
+            data_type: string
+            description: "Run that first accepted this unique content."
+          - name: first_seen_at
+            data_type: timestamp
+            description: "Original conservative durable-acceptance bound; unchanged when A reappears."
+          - name: area
+            data_type: string
+            description: "CAISO system-wide demand area."
+          - name: load
+            data_type: numeric
+            description: "Five-minute average system demand in MW, not interval energy."
+      - name: load_state_transitions
+        description: "One material load state occurrence; only a SUCCEEDED originating run makes it eligible."
+        columns:
+          - name: transition_id
+            data_type: string
+            description: "Identity of one material state occurrence; reappearance has a new ID."
+            data_tests:
+              - not_null
+              - unique
+          - name: run_id
+            data_type: string
+            description: "Stable identifier of one bounded ingestion attempt."
+          - name: logical_key
+            data_type: string
+            description: "Unchanged Phase 1 observation-key/v1 SHA-256 identity."
+          - name: content_id
+            data_type: string
+            description: "Stable identity of a preserved logical-key/content-hash state."
+          - name: content_hash
+            data_type: string
+            description: "Unchanged Phase 1 observation-content/v1 digest; not an ordering field."
+          - name: logical_key_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-key/v1."
+          - name: content_hash_schema
+            data_type: string
+            description: "Serialization namespace, currently observation-content/v1."
+          - name: market_date
+            data_type: date
+            description: "Pacific operating date preserved from raw; never a UTC date cast."
+          - name: interval_start_utc
+            data_type: timestamp
+            description: "Inclusive timezone-aware UTC interval start."
+          - name: ordinal
+            data_type: int64
+            description: "Per-logical-observation transition order."
+          - name: commit_sequence
+            data_type: int64
+            description: "Phase 2 dataset-wide commit order; the incremental watermark."
+          - name: retrieved_at_utc
+            data_type: timestamp
+            description: "UTC retrieval time, distinct from durable knowledge time."
+          - name: known_at
+            data_type: timestamp
+            description: "Successful data-job completion bound for this transition."

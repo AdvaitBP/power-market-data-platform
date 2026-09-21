@@ -26,11 +26,12 @@ __pycache__/
 htmlcov/
 coverage.xml
 
-# Generated dbt files (wherever a future dbt project lives)
+# Generated dbt artifacts and local profiles
 **/target/
 **/dbt_packages/
 **/logs/
 profiles.yml
+**/.user.yml
 
 # Local downloads, reports and scratch data, never test fixtures
 /artifacts/

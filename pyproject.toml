@@ -19,6 +19,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "build==1.6.1",
+    "Jinja2==3.1.6",
     "mypy==2.3.1",
     "pytest==9.1.1",
     "ruff==0.16.8",
@@ -38,6 +39,9 @@ include = [
     "/src",
     "/tests",
     "/integration_tests",
+    "/dbt_checks",
+    "/dbt_integration_tests",
+    "/dbt",
     "/docs",
     "/AGENTS.md",
     "/PROJECT_BRIEF.md",
@@ -59,5 +63,5 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
 python_version = "3.12"
-files = ["src", "tests", "integration_tests"]
+files = ["src", "tests", "integration_tests", "dbt_checks", "dbt_integration_tests"]
 strict = true

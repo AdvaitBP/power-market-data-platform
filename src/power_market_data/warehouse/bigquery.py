@@ -122,7 +122,7 @@ class BigQueryWarehouse:
         dataset.location = self.config.location
         dataset.labels = {"managed_by": "power-market-data-platform", "schema": "v1"}
         dataset.description = (
-            "Portfolio raw observations, contents, transitions and ingestion runs."
+            "Raw CAISO observations, source contents, state transitions, and ingestion manifests."
         )
         try:
             actual = self.client.create_dataset(dataset, exists_ok=True, timeout=60)
