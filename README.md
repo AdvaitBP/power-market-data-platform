@@ -14,7 +14,8 @@ revisions, idempotent reruns, and visible data-quality failures.
 
 ## Current status
 
-**Phase 3: verified dbt analytical warehouse.** The existing CAISO adapter
+**Phase 4: verified local Flyte orchestration and bounded backfills.** The
+existing CAISO adapter
 fetches hourly day-ahead LMP at NP15/SP15/ZP26 and five-minute system load.
 Normalized observations can now be persisted with ingestion manifests, distinct
 source contents, ordered state transitions and explicit knowledge times.
@@ -40,15 +41,26 @@ The standalone dbt project now contains accepted revision histories, incremental
 current LMP/load facts and daily-price/ingestion summaries. Offline SQL tests and
 a credential-free project parse pass. Controlled BigQuery verification covers
 unchanged repeats, revisions, reappearance, late arrivals, unsuccessful-run
-exclusion and incremental/full-refresh equality. Real builds and reconciliation
-passed with 24 hourly NP15 LMP facts and 288 five-minute load facts; an unchanged
-second build preserved every output row. The live catalog describes 11 models
+exclusion and incremental/full-refresh equality. Phase 3 initially verified
+24 hourly NP15 LMP facts and 288 five-minute load facts, with an unchanged
+second build preserving every output row. The live catalog describes 11 models
 and 5 raw sources. The earlier quota-blocked attempt remains documented. See the
 [analytics contract](docs/contracts/analytics.md),
 [toolchain decision](docs/adr/006-dbt-analytical-state.md) and
 [Phase 3 verification](docs/verification/phase3.md).
-There is no Flyte, automated multi-date backfill, final Data Quality Observatory,
-as-of consumer query or capture-price analysis.
+Flyte 2.8.1 now coordinates one through seven completed Pacific dates, serial
+bounded ingestion, then dbt and analytical verification. Stable run IDs preserve
+successful requests across interruption; fresh retrievals use new attempt IDs.
+The controlled recovery suite and a real August 2–3 NP15/load backfill passed.
+A fresh real retrieval added no contents or transitions, changed no fact rows,
+and produced zero-row dbt fact MERGEs. The verified sample now contains 72 LMP
+and 864 load facts across August 1–3. See the
+[orchestration contract](docs/contracts/orchestration.md),
+[ADR 007](docs/adr/007-local-flyte-orchestration.md) and
+[Phase 4 verification](docs/verification/phase4.md), including quota failures,
+temporary authorized allowances and restoration to the normal safeguards.
+There is no automated scheduler, remote Flyte deployment, final Data Quality
+Observatory, as-of consumer query or capture-price analysis.
 
 ## Architecture and planned layers
 
@@ -58,7 +70,7 @@ flowchart LR
     P --> B["BigQuery: implemented contents, transitions, runs"]
     B --> D["dbt: verified SQL models, tests and lineage"]
     D --> A["Planned quality, as-of and capture-price analysis"]
-    F["Planned Flyte: dependencies, retries, backfills"] -. orchestrates .-> P
+    F["Flyte: verified local tasks, retries, backfills"] -. orchestrates .-> P
     F -. orchestrates .-> D
 ```
 
@@ -84,7 +96,7 @@ and [architecture decisions](docs/adr/).
 | 1 | CAISO source adapters and normalization — complete within documented limits |
 | 2 | Revision-aware BigQuery persistence — complete within documented limits |
 | 3 | dbt analytical warehouse — complete within documented limits |
-| 4 | Flyte orchestration and backfills |
+| 4 | Flyte orchestration and backfills — complete within documented limits |
 | 5 | Data-quality/as-of/capture-price analytics |
 | 6 | Public portfolio/reproducibility audit |
 
@@ -102,6 +114,9 @@ integration_tests/         Explicitly opted-in raw-persistence BigQuery tests
 dbt/                       SQL models, sources, contracts, unit/data tests, profile example
 dbt_checks/                Shared synthetic dbt contract fixtures
 dbt_integration_tests/     Opt-in native dbt builds in disposable datasets
+orchestration/             Optional Flyte tasks, bounded plans and dbt subprocess
+orchestration_checks/      Credential-free native Flyte fixture execution
+orchestration_integration_tests/  Opt-in disposable recovery/equivalence test
 AGENTS.md                   Engineering contract
 PROJECT_BRIEF.md            Motivation and scope
 PLANS.md                    Deliverables and completion criteria
@@ -114,8 +129,9 @@ pyproject.toml              Packaging, development dependencies and checks
 Use Python 3.12. The [compatibility decision](docs/adr/004-python-tooling.md)
 records the initial future-stack check and its limitations. Runtime dependencies
 are gridstatus==0.36.0, google-cloud-bigquery==3.45.2 and Windows timezone data.
-The development extra pins direct validation tools. No ORM, orchestration
-framework or transitive lockfile is added.
+The development extra pins direct validation tools. No ORM or transitive lockfile
+is added. dbt and Flyte use separate repository-local tooling environments;
+neither is a core application runtime dependency.
 
 From the repository root, on Windows PowerShell:
 
@@ -201,6 +217,26 @@ Follow the [PowerShell setup/build/docs commands](docs/contracts/analytics.md#lo
 The target is a separate, configurable power_market_analytics dataset in US.
 Never point it at raw storage. Ordinary CI does not execute warehouse queries.
 
+## Bounded Flyte backfills
+
+Install the isolated Flyte 2.8.1 environment and use the explicit JSON plan in
+[the local setup and command examples](docs/contracts/orchestration.md#reproducible-native-setup-and-commands).
+The manually invoked local graph calls the existing ingestion service once per
+product/date/hub, then runs dbt only after all required requests succeed.
+Concurrency is one because raw commits share a sequencing/finalization guard.
+
+Save the backfill UUID. Reusing it resumes the same attempts and skips retrieval
+for existing successes; a new UUID means a fresh retrieval. Failed requests stop
+later work and dbt without rolling back earlier accepted days. Only narrowly
+classified transient failures receive one automatic retry. Quota errors and
+uncertain commits stop for diagnosis/reconciliation. The normal safeguards are
+5 GiB/day, a $1 monthly budget alert and 100 MiB/query caps; a seven-day plan is
+not a promise that the complete graph fits the daily allowance.
+
+Only one cooperating backfill/dbt writer may use a target at a time. Local Flyte
+requires no cluster, Docker, WSL or scheduler. Ordinary CI runs the native fixture
+graph without credentials; the separate cloud recovery suite is explicitly opt-in.
+
 ## Validation
 
 Windows PowerShell, from the repository root:
@@ -231,9 +267,11 @@ exist, but no raw response archive or verified source-deletion signal exists.
 Writers must follow the documented transaction protocol; finalization can require
 explicit recovery. dbt facts depend on ordered raw finalization and one dbt writer;
 the graph is not an atomic snapshot of concurrent ingestion. Current data covers
-one real market day, and summaries do not establish source completeness. No Flyte,
-automated backfills, final Data Quality Observatory, as-of consumer query or
-capture-price analysis is implemented.
+three real market days at NP15 plus system load; summaries do not establish
+source completeness. Flyte runs locally with explicit plans and one cooperating
+writer; no remote control plane or automated scheduler is deployed. There is no
+final Data Quality Observatory, as-of consumer query, forecasting, battery
+optimization or capture-price analysis.
 Direct development tools are pinned; transitive dependencies are not fully locked.
 
 Trading strategy, automated bidding, dispatch optimization, production P&L,

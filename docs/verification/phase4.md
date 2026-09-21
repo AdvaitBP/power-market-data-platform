@@ -1,11 +1,13 @@
-# Phase 4 verification — controlled cloud pass, live quota stop
+# Phase 4 verification — recovery, live backfill and fresh retrieval
 
-Status at 2026-09-21 15:03 UTC: **incomplete; keep PR #5 draft and unmerged**.
-The controlled native Flyte/BigQuery/dbt suite passed. The real two-day workflow
-then hit the authorized temporary 12 GiB daily quota after accepting its first
-LMP request. The quota was restored and independently verified at 5 GiB.
-Real workflow completion, its dbt/analytical checks and exact rerun remain open.
-No source, persistence, orchestration or SQL implementation bug was observed.
+Status on 2026-09-21: **Phase 4 verified within the orchestration contract**.
+The controlled cloud suite, saved real backfill, fresh real retrieval, dbt builds
+and independent analytical reconciliation passed. The normal 5 GiB daily quota
+was restored and independently verified before final Git review and merge.
+No implementation changes were needed during live verification.
+
+The record below preserves the earlier deferral and quota failure. The final
+completion section records the later authorized 30 GiB allowance and its removal.
 
 ## Initial attempt, before temporary quota authorization
 
@@ -35,7 +37,7 @@ SQL remain unchanged.
 
 ## Native local evidence
 
-The real production graph was executed with controlled external boundaries.
+The actual backfill graph was executed with controlled external boundaries.
 The fixture uses the existing `ingest()`, `batch_rows()` and `plan_write()`.
 It is not a BigQuery emulator and does not establish native transaction or SQL
 materialization correctness. Network sockets are blocked inside this graph.
@@ -121,7 +123,7 @@ No claim of a guaranteed zero-dollar bill is made. A second metadata check at
 14:23:51 UTC confirmed the same counts, 330 jobs, unchanged quota/budget and
 100 MiB caps on all observed query jobs.
 
-## Validation commands and outcomes
+## Initial validation commands and outcomes
 
 Run from the actual checkout. Core commands:
 
@@ -153,7 +155,8 @@ $env:DBT_SEND_ANONYMOUS_USAGE_STATS = "false"
 ```
 
 Passed: dependency consistency, **one cap regression test**, credential-free
-parse. No Phase 4 live dbt build or native dbt data/unit test run is claimed.
+parse. No Phase 4 live dbt build or native dbt data/unit test run had occurred
+at that stage.
 
 Isolated Flyte commands:
 
@@ -182,8 +185,7 @@ neither was suppressed or treated as successful cloud verification.
 6. Update this record, README and Phase 4 status only after the mandatory cloud
    evidence exists, then obtain green final-head Windows/Linux CI before merge.
 
-README intentionally retains the last completed Phase 3 status until that
-verification passes. Phase 4's definition of done is not weakened. There is no
+README retained the last completed Phase 3 status until that verification passed. Phase 4's definition of done is not weakened. There is no
 remote always-on Flyte deployment, automated scheduler, final Data Quality
 Observatory, as-of consumer analytics or capture-price analysis.
 
@@ -230,7 +232,7 @@ $env:PYTHONUTF8 = "1"
 .\artifacts\flyte-venv\Scripts\python.exe -m pytest orchestration_integration_tests --run-flyte-bigquery -v
 ```
 
-The actual Flyte local SDK executed the production tasks. Controlled source
+The actual Flyte local SDK executed the repository backfill tasks. Controlled source
 records used one LMP and one load observation for each date from 2026-08-02
 through 2026-08-04; no real CAISO value was altered.
 
@@ -324,7 +326,7 @@ No live dbt build, analytical verification task or exact live rerun occurred.
 Their success and rows affected are **not established** by the controlled suite.
 The real daily-summary view was not re-queried after the quota stop.
 
-## Final real warehouse state and usage
+## Warehouse state and usage after the 12 GiB attempt
 
 Non-query table reads verified every original raw content/transition and every
 original fact row remained unchanged. New LMP rows are preserved raw data, not
@@ -365,7 +367,7 @@ Independent postflight matched the original Service Usage quota response and
 budget response. The dbt adapter-cap test and Python 104857600-byte assertion
 passed again after restoration. No further billable queries were attempted.
 
-## Current validation and remaining gates
+## Validation and remaining gates after the 12 GiB attempt
 
 The previously listed core commands were rerun successfully: pip check, Ruff
 lint/format, mypy, **233 offline pytest tests** (42 orchestration), isolated import
@@ -374,7 +376,7 @@ and package build. Isolated Flyte pip check, version, mypy over 12 files and
 parse passed. The separate cloud suite is now **1 passed**. No failing assertion
 was weakened, and no implementation fix was needed.
 
-Remaining mandatory gates are:
+The remaining mandatory gates at that point were:
 
 1. With sufficient normal daily headroom, resume the saved two-day real workflow
    through ingestion, dbt and analytical verification.
@@ -385,5 +387,202 @@ Remaining mandatory gates are:
 
 The already passed controlled suite need not be repeated merely because the real
 run resumes on another day; rerun it if code changes or new evidence warrants it.
-No authentication or OS action is currently needed. The blocker is query quota,
-not missing credentials. Phase 4 remains incomplete and Phase 5 has not started.
+No authentication or OS action was needed. The blocker was query quota,
+not missing credentials. At that point Phase 4 remained incomplete; the later
+completion below closed these gates without starting Phase 5.
+
+## Final completion with the authorized 30 GiB allowance
+
+The clean, synchronized existing branch and draft PR #5 resumed at
+`1d58326b0b9d54e7d7815e19ef4089f0266ecb20`. The already passed controlled cloud
+suite was **not rerun**: there was no relevant implementation change. Its native
+interruption/resumption and equivalence evidence remains valid above.
+
+At 15:23:34 UTC on 2026-09-21, preflight confirmed the project quota was 5 GiB,
+the $1 monthly alert and 100 MiB caps were unchanged, the warehouse guard had no
+active run, and no manifest was COMMITTED. The saved SUCCEEDED/STARTED/absent
+unit states matched the preceding record. Earlier same-day usage was
+12,886,999,040 billed bytes across 776 parent query jobs.
+
+Only the project-level daily override changed, under explicit user authorization:
+
+| Event (2026-09-21 UTC) | Time | Effective quota |
+| --- | --- | ---: |
+| Temporary increase requested | 15:26:37 | — |
+| Increase verified | 15:26:43 | 30 GiB / 30,720 MiB |
+| Restore requested after both workflows and inspections | 15:36:56 | — |
+| Restoration verified | 15:37:00 | 5 GiB / 5,120 MiB |
+| Independent quota/budget postflight | 15:38:19 | 5 GiB / 5,120 MiB |
+
+Restoration ran in `finally`. User-level quotas, IAM, billing-account configuration,
+pricing model, budget and Python/dbt caps were not changed. After restoration,
+the budget API response matched the original $1 monthly alert configuration,
+the Python cap assertion and dbt adapter-cap regression passed, and every new
+query job reported `maximum_bytes_billed = 104857600`.
+
+Read-only US inventories returned no BigQuery reservations, capacity commitments
+or scheduled transfer configurations. Query metadata recorded no reservation
+usage. Compute Engine, Kubernetes Engine and Cloud Run APIs remained disabled;
+they were not enabled merely to list resources. No VM, cluster, remote Flyte
+backend or continuously running resource was created. Only the two real datasets
+remain; no disposable dataset was needed for this completion.
+
+### Actual Flyte commands and ordering
+
+Both commands used native Windows local execution with Flyte **2.8.1**, Python
+**3.12.14** and the unchanged `TaskEnvironment` graph. No Docker or WSL was used.
+The process environment selected the dedicated project, raw/analytics datasets
+and US location as in the earlier invocation. `PYTHONUTF8=1` remained local to
+those processes; the code revision environment recorded the current head.
+
+The saved plan was reused exactly, then only its UUID changed for fresh retrieval:
+
+```powershell
+$spec = '{"backfill_id":"3fdcca7e53a0440c8ea4fdd0403d452c","start_date":"2026-08-02","end_date":"2026-08-03","ingest_lmp":true,"ingest_load":true,"locations":["TH_NP15_GEN-APND"],"run_dbt":true,"concurrency":1}'
+.\artifacts\flyte-venv\Scripts\flyte.exe run --local --raw-data-path artifacts/flyte/raw orchestration/flyte_pipeline.py backfill --spec $spec
+
+$spec = '{"backfill_id":"09b48fd791f94b66bcfd32d7269bfbbd","start_date":"2026-08-02","end_date":"2026-08-03","ingest_lmp":true,"ingest_load":true,"locations":["TH_NP15_GEN-APND"],"run_dbt":true,"concurrency":1}'
+.\artifacts\flyte-venv\Scripts\flyte.exe run --local --raw-data-path artifacts/flyte/raw orchestration/flyte_pipeline.py backfill --spec $spec
+```
+
+The saved execution ran from **15:26:43 to 15:31:01 UTC**. The fresh execution ran
+from **15:31:12 to 15:36:44 UTC**. Each graph executed `backfill`, four serial
+`ingest_day` tasks, `build_analytics`, then `verify_analytics`.
+The wrappers called existing ingestion/persistence, the verified dbt subprocess
+and bounded fact checks. No source or warehouse rules were moved into Flyte.
+Both dbt execution-start timestamps were after all four required manifest
+completion timestamps; no ingestion overlapped its workflow's dbt graph.
+
+### Saved manifests after successful resumption
+
+All four manifests are SUCCEEDED. Counters below describe the durable attempt,
+including the original August 2 LMP acceptance, rather than only this process.
+LMP location is `TH_NP15_GEN-APND`; load is CAISO system load.
+
+| Date / product | Run ID | Fetched | Accepted | New contents | New transitions | Knowledge time (2026-09-21 UTC) |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| 2026-08-02 / lmp | `13ad8ff858bb5a02aec95f0b0b6a3d7e` | 24 | 24 | 24 | 24 | 15:02:05.570000 |
+| 2026-08-02 / load | `fff833cf2b8d51d9803b478cc0a4cc75` | 288 | 288 | 288 | 288 | 15:27:13.037000 |
+| 2026-08-03 / lmp | `f14f6e10cd255044b3c4e7c06ccff00c` | 24 | 24 | 24 | 24 | 15:27:58.171000 |
+| 2026-08-03 / load | `46d71453438751d5ad7022e8d5495ef6` | 288 | 288 | 288 | 288 | 15:28:39.061000 |
+
+The first LMP manifest was preserved field-for-field and its task reported
+`reused_success=True`, zero new contents/transitions for this invocation and no
+source refetch. The previously STARTED load manifest kept its run ID and original
+start time and completed normally. The resume therefore made **three** source
+requests, adding **600 contents and 600 transitions**. No terminal failure was
+revived and no knowledge time was backdated to the market interval.
+
+### Real fresh-retrieval result
+
+The fresh UUID produced four new successful manifests and **four new CAISO
+requests**, not a reuse-only check. Each accepted the actual returned rows:
+
+| Date / product | New run ID | Fetched / accepted | New contents | New transitions |
+| --- | --- | ---: | ---: | ---: |
+| 2026-08-02 / lmp | `29dfb40badd650bcbc80d4e1ad79a803` | 24 / 24 | 0 | 0 |
+| 2026-08-02 / load | `069432216d735f71be659d9fc4480839` | 288 / 288 | 0 | 0 |
+| 2026-08-03 / lmp | `d4b832a812025f0a882242802823b413` | 24 / 24 | 0 | 0 |
+| 2026-08-03 / load | `d982cce68c6b55598d000c62c4af8630` | 288 / 288 | 0 | 0 |
+
+No normalized CAISO source revision was observed. Full contents and transition
+rows, including first-known times, were unchanged from successful resumption.
+Complete LMP/load fact rows and daily-price summaries also matched field-for-field.
+The extra manifests represent real retrieval attempts, not duplicated observations.
+
+### dbt and independent reconciliation
+
+Both real builds passed **56 nodes: 11 models, 38 data tests and 7 unit tests**.
+dbt-core **1.12.5** and dbt-bigquery **1.12.1** were unchanged. The resumed build's
+MERGEs affected **48 LMP and 576 load rows**, including the earlier accepted LMP
+that had not reached facts. The fresh build's MERGEs affected **0 and 0 rows**.
+Both bounded verification tasks passed with 24 LMP and 288 load facts for each
+requested date. Their queries reported 103,098 / 103,458 processed bytes and
+41,943,040 billed bytes each; these are included in the total below.
+
+Independent checks compared actual raw/fact table rows and bounded SQL history
+results. Fact keys equaled latest eligible SUCCEEDED transition keys; every
+current content ID was preserved raw content; history contained all and only
+eligible transitions. Keys were unique, units remained USD/MWh and MW, intervals
+were aware UTC with one-hour/five-minute durations, and Pacific market dates
+matched their starts. Every earlier accepted content/transition remained intact.
+The guard ended with no active writer; no STARTED or COMMITTED run remained.
+
+| Final relation | Rows / grain |
+| --- | --- |
+| ingestion_runs | 12 attempts: 11 SUCCEEDED, 1 historical FAILED |
+| warehouse_control | 1 dataset sequencing row |
+| lmp_contents / lmp_state_transitions | 72 unique contents / 72 occurrences |
+| load_contents / load_state_transitions | 864 unique contents / 864 occurrences |
+| int_lmp_revision_history / int_load_revision_history | 72 / 864 eligible occurrences |
+| fct_hourly_lmp / fct_system_load_5min | 72 / 864 current logical observations |
+
+### Actual daily NP15 summary
+
+All rows below are CAISO, DAY_AHEAD_HOURLY, TH_NP15_GEN-APND. Dates are Pacific;
+prices are USD/MWh. These are queried mart results, with no causal interpretation
+or claim that returned intervals establish upstream completeness.
+
+| Market date | Observations | Expected hours | Average | Minimum | Maximum | Negative intervals |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 2026-08-01 | 24 | 24 | 40.610213333 | 27.19765 | 65.15886 | 0 |
+| 2026-08-02 | 24 | 24 | 42.808755 | 25.83308 | 85.1957 | 0 |
+| 2026-08-03 | 24 | 24 | 50.723734583 | 31.26647 | 110.73877 | 0 |
+
+### Actual final ingestion health
+
+All rows are CAISO; LMP uses NP15 and load has no requested hub. All started and
+unfinalized counts are zero. Accepted-row sums count successful attempts and
+therefore deliberately exceed unique source counts on repeated retrievals.
+
+| Date / product | Runs | Succeeded | Failed | Successful rows accepted | New contents / transitions | Latest successful knowledge (UTC) |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| 2026-08-01 / lmp | 3 | 2 | 1 | 48 | 24 / 24 | 2026-09-20 18:40:33.065000+00:00 |
+| 2026-08-01 / load | 1 | 1 | 0 | 288 | 288 / 288 | 2026-09-20 18:41:13.501000+00:00 |
+| 2026-08-02 / lmp | 2 | 2 | 0 | 48 | 24 / 24 | 2026-09-21 15:31:46.093000+00:00 |
+| 2026-08-02 / load | 2 | 2 | 0 | 576 | 288 / 288 | 2026-09-21 15:32:46.064000+00:00 |
+| 2026-08-03 / lmp | 2 | 2 | 0 | 48 | 24 / 24 | 2026-09-21 15:33:31.209000+00:00 |
+| 2026-08-03 / load | 2 | 2 | 0 | 576 | 288 / 288 | 2026-09-21 15:34:20.203000+00:00 |
+
+### New completion usage and validation
+
+Only the later 30 GiB completion window is counted here; the earlier controlled
+suite and Phase 3 usage are excluded. Parent QueryJobs exclude script children.
+No billable queries ran after safeguard restoration.
+
+| Metric | New completion window |
+| --- | ---: |
+| Query jobs | 229 |
+| Failed query jobs | 0 |
+| Bytes processed | 13,732,714 |
+| Bytes billed | 4,110,417,920 |
+
+Cumulative same-day usage was **1,005 query jobs**,
+**185,333,392 processed bytes** and **16,997,416,960 billed bytes**.
+These are usage statistics, not an invoice or an inferred dollar charge.
+
+| Logical storage | Before completion | After completion | Added bytes |
+| --- | ---: | ---: | ---: |
+| power_market_raw | 295,663 | 818,484 | 522,821 |
+| power_market_analytics | 190,392 | 571,176 | 380,784 |
+
+Logical table bytes do not describe time-travel/fail-safe physical storage or a
+posted charge. No cost guarantee is inferred from these small amounts.
+
+All normal credential-free checks passed again: core pip check, Ruff lint and
+format, mypy, **233 offline tests** (including 42 orchestration), isolated import
+and source/wheel build; Flyte pip check/version, mypy and **4 native local tests**;
+dbt pip check, parse and the **one-test cap regression**. The two upstream
+Flyte/Pydantic deprecation warnings remained visible. The **one previously passed
+controlled cloud test was retained, not rerun**. No test assertions were weakened.
+
+No implementation fix was required. The complete PR diff was reviewed for retry
+classification, stable run IDs, delegation to existing domain/storage code,
+ingestion/dbt ordering, secret/artifact exclusion and accurate claims. Normal
+configuration retains 5 GiB/day and 100 MiB/query; temporary allowances are
+documented as historical verification exceptions, not operational defaults. Final CI/review/merge evidence is
+recorded on [PR #5](https://github.com/AdvaitBP/power-market-data-platform/pull/5).
+
+There is no remote Flyte cluster, automated scheduler, final Data Quality
+Observatory, as-of consumer analytics, battery optimization, forecasting or
+capture-price analysis. Phase 5 was not started.

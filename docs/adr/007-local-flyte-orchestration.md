@@ -1,9 +1,8 @@
 # ADR 007: Bounded local Flyte orchestration
 
-Status: accepted for the implementation on the Phase 4 branch. Native local
-execution and controlled BigQuery/dbt recovery verification passed. The real
-two-day backfill stopped at the daily quota; its completion and rerun remain
-pending. This does not mark Phase 4 complete.
+Status: accepted and verified on 2026-09-21. Native local execution, controlled
+BigQuery/dbt recovery, the real two-day backfill and fresh retrieval all passed.
+The normal daily quota was restored before final Git review and merge.
 
 ## Context
 
@@ -119,10 +118,11 @@ calls may require operator interruption. After interruption or dbt timeout,
 inspect in-flight cloud jobs before another writer starts. A local process
 exit does not cancel a submitted BigQuery job.
 
-The controlled native persistence/dbt equivalence suite passed on 2026-09-21.
-The real CAISO backfill/rerun remains a merge gate. For that verification only,
-the user authorized a temporary daily quota increase from 5 to 12 GiB. After
-the live quota failure it was restored and verified at 5 GiB; the per-query
-caps and budget alert were unchanged. This operational exception does not change
-the normal safeguards or the architecture. See the
-[contract](../contracts/orchestration.md) and [verification record](../verification/phase4.md).
+The controlled native persistence/dbt equivalence suite and real CAISO backfill
+with fresh retrieval passed on 2026-09-21. Earlier quota failures were retained
+in the verification record. The user authorized temporary daily allowances of
+12 GiB and later 30 GiB to finish bounded verification; each was restored and
+verified at 5 GiB. Per-query caps, the budget and other safeguards were unchanged.
+These operational exceptions do not change the normal safeguards or architecture.
+See the [contract](../contracts/orchestration.md) and
+[verification record](../verification/phase4.md).

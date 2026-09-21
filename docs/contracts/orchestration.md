@@ -1,8 +1,8 @@
 # Orchestration contract
 
-Phase 4 native local and controlled BigQuery/dbt verification passed. The real
-two-day backfill and rerun remain incomplete after a daily-quota stop; see the
-[verification and exact resume point](../verification/phase4.md).
+Phase 4 native local execution, controlled BigQuery/dbt recovery and the real
+two-day backfill/fresh retrieval passed on 2026-09-21; see the
+[verification history and results](../verification/phase4.md).
 [ADR 007](../adr/007-local-flyte-orchestration.md) records the decision.
 Phase 1 observation identities, Phase 2 persistence and Phase 3 SQL are unchanged.
 
@@ -135,7 +135,7 @@ variables `GCP_PROJECT_ID`, `BQ_RAW_DATASET`, `BQ_ANALYTICS_DATASET`,
 `BQ_LOCATION`, and optional `PMD_CODE_REVISION`. Use existing user ADC;
 credentials do not belong in the plan, environment file or repository.
 
-After checking quota headroom, this is the small intended live invocation:
+After checking quota headroom, this is the verified two-day invocation pattern:
 
 ```powershell
 $backfillId = [guid]::NewGuid().ToString("N")
@@ -198,9 +198,10 @@ ownership labels and clean them manually. The test never runs in CI automaticall
 
 ## Cost and remaining limits
 
-Keep 100 MiB query caps, the 5 GiB daily custom quota and the $1 monthly budget
-alert unchanged. Ordinary CI makes no cloud queries. A budget alert is not a
-hard cap or a zero-cost guarantee. Metadata-based preflight does not consume
+Normal operation retains 100 MiB query caps, the 5 GiB daily custom quota and
+the $1 monthly budget alert. The explicitly authorized temporary allowances used
+for verification were restored; they are not setup defaults. Ordinary CI makes
+no cloud queries. A budget alert is not a hard cap or a zero-cost guarantee. Metadata-based preflight does not consume
 query bytes; estimate all required builds and raw DML, including BigQuery
 minimum billed units, before starting a live run.
 
