@@ -16,7 +16,8 @@ idempotent reruns, preserved revisions, and analysis bounded by what the system
 knew at a given time. Phase 1 implements a narrow Python CAISO adapter and
 normalization boundary. Phase 2 adds BigQuery contents, transitions and run
 manifests with explicit durable acceptance and recovery semantics.
-dbt transformations and Flyte orchestration remain planned.
+Phase 3 adds dbt analytical models and tests. Phase 4 coordinates bounded
+requests, recovery and downstream dbt builds through local Flyte execution.
 
 ## Not in scope
 

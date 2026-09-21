@@ -1,6 +1,6 @@
 # Implementation plan
 
-Phases 0–3 are complete within their documented scope. Phases 4–6 are planned
+Phases 0–4 are complete within their documented scope. Phases 5–6 are planned
 and unimplemented.
 Each phase must meet its definition of done before the next begins. Tests that
 require an external service must be explicit and separate from offline unit CI.
@@ -62,7 +62,7 @@ native suite passed revision/reappearance, late-arrival, unsuccessful-run exclus
 incremental/full-refresh equality, deliberate failed-contract detection and repair.
 Two real builds, independent reconciliation and live catalog generation passed
 without changing cost safeguards. The earlier quota failure is preserved in the
-[verification record](docs/verification/phase3.md). Phase 4 has not started.
+[verification record](docs/verification/phase3.md).
 
 - **Purpose:** Express warehouse transformations and their contracts in SQL.
 - **Deliverables:** dbt sources, staging/intermediate models, initial facts with
@@ -75,6 +75,13 @@ without changing cost safeguards. The earlier quota failure is preserved in the
 - **Deferred:** Flyte schedules, broad mart coverage, and analytical conclusions.
 
 ## Phase 4 — Flyte orchestration and backfills
+
+Status: **complete within documented limits**, verified on 2026-09-21. Native
+Flyte execution, controlled interruption/resumption equivalence, the saved real
+two-day NP15/load backfill, fresh retrieval, dbt and analytical reconciliation
+passed. Exact real retrieval added no content or transitions and changed no fact
+rows. Temporary daily quota increases and both restorations to 5 GiB remain in
+the [Phase 4 verification record](docs/verification/phase4.md).
 
 - **Purpose:** Coordinate bounded, repeatable runs without embedding domain rules.
 - **Deliverables:** Tasks calling existing adapters/storage and dbt interfaces,

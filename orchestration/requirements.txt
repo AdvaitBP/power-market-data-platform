@@ -1,0 +1,2 @@
+# Stable SDK verified on Python 3.12; separate from application and dbt environments.
+flyte==2.8.1
