@@ -1,7 +1,9 @@
 # Orchestration contract
 
-Phase 4 code is locally verified on its branch; required cloud verification is
-pending. [ADR 007](../adr/007-local-flyte-orchestration.md) records the decision.
+Phase 4 native local and controlled BigQuery/dbt verification passed. The real
+two-day backfill and rerun remain incomplete after a daily-quota stop; see the
+[verification and exact resume point](../verification/phase4.md).
+[ADR 007](../adr/007-local-flyte-orchestration.md) records the decision.
 Phase 1 observation identities, Phase 2 persistence and Phase 3 SQL are unchanged.
 
 ## Inputs and task graph

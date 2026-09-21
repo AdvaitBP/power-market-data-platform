@@ -1,6 +1,7 @@
 # Implementation plan
 
-Phases 0–3 are complete within their documented scope. Phases 4–6 are planned
+Phases 0–3 are complete within their documented scope. Phase 4 is implemented
+but its required real backfill verification is incomplete. Phases 5–6 are planned
 and unimplemented.
 Each phase must meet its definition of done before the next begins. Tests that
 require an external service must be explicit and separate from offline unit CI.
@@ -63,7 +64,8 @@ incremental/full-refresh equality, deliberate failed-contract detection and repa
 Two real builds, independent reconciliation and live catalog generation passed
 without changing cost safeguards. The earlier quota failure is preserved in the
 [verification record](docs/verification/phase3.md). Phase 4 is in progress; native local
-orchestration passes, with cloud verification pending.
+orchestration and controlled BigQuery/dbt recovery pass; the real backfill and
+rerun remain blocked by daily query quota.
 
 - **Purpose:** Express warehouse transformations and their contracts in SQL.
 - **Deliverables:** dbt sources, staging/intermediate models, initial facts with
@@ -78,8 +80,8 @@ orchestration passes, with cloud verification pending.
 ## Phase 4 — Flyte orchestration and backfills
 
 Status: **in progress, not complete**. See the
-[Phase 4 verification record](docs/verification/phase4.md) for local results and
-the remaining cloud gates.
+[Phase 4 verification record](docs/verification/phase4.md) for the controlled
+cloud pass, partial real run, restored quota and remaining completion gates.
 
 - **Purpose:** Coordinate bounded, repeatable runs without embedding domain rules.
 - **Deliverables:** Tasks calling existing adapters/storage and dbt interfaces,
