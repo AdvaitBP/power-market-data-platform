@@ -70,3 +70,21 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: deliberately-missing-credentials.json
           DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
         run: '"$DBT_BIN/dbt" parse --project-dir dbt --profiles-dir dbt'
+      - name: Install isolated Flyte tooling
+        run: |
+          python -m venv artifacts/flyte-venv
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            FLYTE_BIN=artifacts/flyte-venv/Scripts
+          else
+            FLYTE_BIN=artifacts/flyte-venv/bin
+          fi
+          "$FLYTE_BIN/python" -m pip install -e ".[dev]" -r orchestration/requirements.txt
+          "$FLYTE_BIN/python" -m pip check
+          echo "FLYTE_BIN=$FLYTE_BIN" >> "$GITHUB_ENV"
+      - name: Type-check and execute the native local Flyte graph
+        env:
+          PYTHONUTF8: "1"
+          GOOGLE_APPLICATION_CREDENTIALS: deliberately-missing-credentials.json
+        run: |
+          "$FLYTE_BIN/python" -m mypy orchestration orchestration_checks orchestration_integration_tests
+          "$FLYTE_BIN/python" -m pytest orchestration_checks orchestration_integration_tests
