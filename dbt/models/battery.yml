@@ -1,0 +1,52 @@
+version: 2
+models:
+  - name: mart_battery_optimization_inputs
+    description: >-
+      One current accepted CAISO DAY_AHEAD_HOURLY LMP per location and UTC hourly
+      interval (logical_key). Prices are USD/MWh, market_date is Pacific, all
+      timestamps are UTC. A projection of the successful-transition-based fact,
+      with no defaults, aggregation, load or as-of cutoff. All columns required.
+      Lineage identifies the exact preserved source state used by the oracle.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: source
+        data_type: string
+      - name: market
+        data_type: string
+      - name: unit
+        data_type: string
+      - name: market_date
+        data_type: date
+      - name: location
+        data_type: string
+      - name: interval_start_utc
+        data_type: timestamp
+      - name: interval_end_utc
+        data_type: timestamp
+      - name: lmp
+        data_type: numeric
+      - name: logical_key
+        data_type: string
+        data_tests: [not_null, unique]
+      - name: content_id
+        data_type: string
+      - name: content_hash
+        data_type: string
+      - name: logical_key_schema
+        data_type: string
+      - name: content_hash_schema
+        data_type: string
+      - name: transition_id
+        data_type: string
+      - name: state_run_id
+        data_type: string
+      - name: state_ordinal
+        data_type: int64
+      - name: commit_sequence
+        data_type: int64
+      - name: first_seen_at
+        data_type: timestamp
+      - name: state_known_at
+        data_type: timestamp

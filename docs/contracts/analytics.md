@@ -105,8 +105,8 @@ unchanged; dbt cannot recover source observations that were never accepted.
 The mart averages hourly prices without volume weighting and reports minimum,
 maximum and negative-price count. Negative prices are valid. There is deliberately
 no component-sum test: the source representation does not support that invariant.
-Only one real day is currently available, so no hour-of-day statistical profile
-or analytical conclusion is added.
+The verified sample now contains three NP15 market days (Phase 4); no
+hour-of-day statistical profile or general market conclusion is inferred.
 
 Ingestion health's latest successful knowledge time may be NULL if a group has
 never succeeded. Optional counts from unfinished runs remain NULL in staging;
@@ -201,3 +201,11 @@ interpreter and guards the adapter-to-client cap configuration without networkin
 Run this check before submitting live dbt work; do not proceed if it fails.
 The integration sequence runs the full suite initially and at full refresh;
 intervening revisions run only the two facts to limit repeated billable tests.
+
+## Battery benchmark input
+
+Phase 5 adds `mart_battery_optimization_inputs`, a narrow view over the current
+LMP fact. Its [contract](battery_optimization.md#analytical-input-and-daily-backtest)
+defines grain, lineage, units and strict daily coverage requirements. No battery
+physics or optimization is implemented in SQL; no previous raw/fact contract
+changes. Native verification is recorded separately in `docs/verification/phase5.md`.

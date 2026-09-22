@@ -1,0 +1,11 @@
+{
+  "energy_capacity_mwh": 4,
+  "max_charge_mw": 1,
+  "max_discharge_mw": 1,
+  "charge_efficiency": 0.95,
+  "discharge_efficiency": 0.95,
+  "initial_soc_mwh": 2,
+  "terminal_soc_mwh": 2,
+  "throughput_cost_usd_per_mwh": 0,
+  "interval_hours": 1
+}

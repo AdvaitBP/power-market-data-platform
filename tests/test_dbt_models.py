@@ -232,3 +232,18 @@ def test_reconciliation_surfaces_corruption(
     assert {row["contract"] for row in errors} == (
         {"history"} if broken == "missing_history" else {"current"}
     )
+
+
+@pytest.mark.parametrize("step", STEPS)
+def test_battery_inputs_preserve_only_current_eligible_state(
+    database: sqlite3.Connection, step: str
+) -> None:
+    load_raw(database, scenario(step))
+    database.execute(f"create view fct_hourly_lmp as {sql('fct_hourly_lmp')}")
+    inputs = [dict(row) for row in database.execute(sql("mart_battery_optimization_inputs"))]
+    facts = [dict(row) for row in database.execute("select * from fct_hourly_lmp")]
+    assert len(inputs) == len(facts) == (2 if step == "late" else 1)
+    assert inputs == [{key: fact[key] for key in inputs[0]} for fact in facts]
+    if step == "reappearance":
+        assert inputs[0]["lmp"] == "10"
+        assert inputs[0]["state_ordinal"] == 3
