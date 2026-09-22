@@ -1,6 +1,6 @@
 # Implementation plan
 
-Phases 0–4 are complete within their documented scope. Phase 5 is in progress;
+Phases 0–5 are complete within their documented scope.
 Phases 6–7 are planned and unimplemented.
 ADR 008 records the explicit 2026-09-21 roadmap change after Phase 4.
 Each phase must meet its definition of done before the next begins. Tests that
@@ -96,7 +96,7 @@ the [Phase 4 verification record](docs/verification/phase4.md).
 
 ## Phase 5 — Battery dispatch optimization and historical backtesting
 
-Status: **local and live verification passed; final CI/merge pending**. [ADR 008](docs/adr/008-battery-benchmark.md)
+Status: **complete within the documented model and three-day sample scope**. [ADR 008](docs/adr/008-battery-benchmark.md)
 replaces the former immediate data-quality/as-of/capture-price objective. This is
 an explicit scope change, not a claim that batteries were always in scope.
 The local model/offline backtest, native input tests and three real daily solves

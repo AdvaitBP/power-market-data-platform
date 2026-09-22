@@ -1,7 +1,7 @@
 # Phase 5 verification: battery benchmark
 
-Status on 2026-09-22 UTC: **local and native/live verification passed**. Final-head
-Windows/Linux CI and PR review remain merge gates. The initial quota-blocked
+Status on 2026-09-22 UTC: **Phase 5 verification complete within its stated scope**.
+Local checks, native/live verification and Windows/Linux CI pass. The initial quota-blocked
 attempt is preserved below; ordinary quota reset later permitted completion
 without changing the 5 GiB allowance. Real three-day results appear in the later
 completion section; synthetic results remain explicitly separate.
@@ -327,6 +327,16 @@ query jobs**, including the actual adapter read and dbt submissions. Billing,
 IAM, user quotas, reservations and infrastructure were not modified. No new
 CAISO request, backfill, remote service or continuously running resource exists.
 
-Local checks passed on the final implementation; the remaining release gate is
-final-head Windows/Linux CI and PR self-review. The complete earlier blocked
-attempt is retained above. Phase 6 has not started.
+Local checks passed on the final implementation. Both Windows and Linux CI
+passed on implementation commit `488053659d83826e6815f5312e9372f1db88bafb`
+([CI run](https://github.com/AdvaitBP/power-market-data-platform/actions/runs/35731912661)).
+The complete published diff was matched to the reviewed checkout. Review checked
+units/equations, terminal SOC, negative-price exclusivity, current-transition
+lineage, bounded/capped reads, optional dependency isolation, actual versus
+synthetic results, and secret/generated-artifact exclusion. No model/data
+assertion was weakened to obtain a pass.
+
+The final documentation closure is rechecked by Windows/Linux CI before merge;
+[PR #6](https://github.com/AdvaitBP/power-market-data-platform/pull/6) records that
+final-head check and merge outcome. The complete earlier blocked attempt is
+retained above. Phase 6 has not started.

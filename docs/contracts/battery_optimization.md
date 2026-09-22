@@ -1,7 +1,7 @@
 # Battery optimization and daily benchmark
 
-Status: local and native/live integration verified; final CI/merge remains the
-release gate. ADR 008 records the roadmap change.
+Status: Phase 5 verified locally, natively and in Windows/Linux CI, within the
+documented model/sample scope. ADR 008 records the roadmap change.
 
 ## Mathematical contract
 

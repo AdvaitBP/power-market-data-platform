@@ -42,7 +42,7 @@ a credential-free project parse pass. Controlled BigQuery verification covers
 unchanged repeats, revisions, reappearance, late arrivals, unsuccessful-run
 exclusion and incremental/full-refresh equality. Phase 3 initially verified
 24 hourly NP15 LMP facts and 288 five-minute load facts, with an unchanged
-second build preserving every output row. The live catalog describes 11 models
+second build preserving every output row. The Phase 3 catalog described 11 models
 and 5 raw sources. The earlier quota-blocked attempt remains documented. See the
 [analytics contract](docs/contracts/analytics.md),
 [toolchain decision](docs/adr/006-dbt-analytical-state.md) and
@@ -70,8 +70,9 @@ was 386.732757 USD across those three days. This is a perfect-foresight benchmar
 not bidding, forecasting or asset P&L, and it cannot establish general economics.
 The initial quota-blocked attempt and later completion after ordinary reset are
 recorded in [Phase 5 verification](docs/verification/phase5.md). See the
-[mathematical/input contract](docs/contracts/battery_optimization.md). Final CI
-and PR review are required before merging this phase.
+[mathematical/input contract](docs/contracts/battery_optimization.md). Windows/Linux
+CI passes; [PR #6](https://github.com/AdvaitBP/power-market-data-platform/pull/6)
+records final review and merge status.
 
 ## Architecture and planned layers
 
@@ -109,7 +110,7 @@ and [architecture decisions](docs/adr/).
 | 2 | Revision-aware BigQuery persistence — complete within documented limits |
 | 3 | dbt analytical warehouse — complete within documented limits |
 | 4 | Flyte orchestration and backfills — complete within documented limits |
-| 5 | Battery optimization and perfect-foresight backtesting — local/live verified; CI/merge pending |
+| 5 | Battery optimization and perfect-foresight backtesting — complete within documented model/sample limits |
 | 6 | Point-in-time quality, forecasting and forecast-driven dispatch — planned |
 | 7 | Public reproducibility audit — planned |
 

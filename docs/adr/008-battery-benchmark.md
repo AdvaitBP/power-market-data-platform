@@ -3,7 +3,8 @@
 - Date: 2026-09-21
 - Status: Accepted; native Windows toolchain, local model and three real daily
   solves verified. The initial native-test quota blockage was resolved after
-  ordinary reset, without changing safeguards. Final CI/merge remains a gate.
+  ordinary reset, without changing safeguards. Windows/Linux CI passes; the
+  verification record links final review/merge evidence.
 - Scope: Explicitly changes the original Phase 5/brief scope; extends ADR 003
   with an independent optimization consumer. ADRs 001–007 remain historical
   decisions and their data/time/identity/persistence contracts are unchanged.

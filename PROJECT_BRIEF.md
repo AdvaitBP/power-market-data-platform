@@ -26,7 +26,9 @@ recovery contracts were established, the project objective changed explicitly:
 Phase 5 studies how trusted prices support constrained energy decisions through
 a hypothetical battery's perfect-foresight historical dispatch. This is an oracle
 benchmark, not an operating policy. [ADR 008](docs/adr/008-battery-benchmark.md)
-records the change and its boundaries.
+records the change and its boundaries. The typed battery model, current-price
+input mart and three-day NP15 daily benchmark are implemented and verified; the
+sample establishes integration, not general storage economics.
 
 Point-in-time data quality and as-of work moves to Phase 6 alongside price
 forecasting and forecast-driven dispatch comparisons. Capture-price analysis is
