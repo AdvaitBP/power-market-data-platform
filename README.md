@@ -14,9 +14,8 @@ revisions, idempotent reruns, and visible data-quality failures.
 
 ## Current status
 
-**Phase 4: verified local Flyte orchestration and bounded backfills.** The
-existing CAISO adapter
-fetches hourly day-ahead LMP at NP15/SP15/ZP26 and five-minute system load.
+**Phase 5: verified battery dispatch model and three-day perfect-foresight benchmark.**
+The existing CAISO adapter fetches hourly day-ahead LMP at NP15/SP15/ZP26 and five-minute system load.
 Normalized observations can now be persisted with ingestion manifests, distinct
 source contents, ordered state transitions and explicit knowledge times.
 
@@ -62,6 +61,18 @@ temporary authorized allowances and restoration to the normal safeguards.
 There is no automated scheduler, remote Flyte deployment, final Data Quality
 Observatory, as-of consumer query or capture-price analysis.
 
+Phase 5 adds a CVXPY/HiGHS battery MILP, independent daily backtesting, strict
+hourly input validation and a current-price dbt input view. Hand-computed tests
+and native input reconciliation pass. All 72 August 1–3 NP15 prices flow through
+the mart/adapter into three optimal, independently checked daily schedules.
+For the illustrative 4 MWh / 1 MW battery, total simulated gross arbitrage value
+was 386.732757 USD across those three days. This is a perfect-foresight benchmark,
+not bidding, forecasting or asset P&L, and it cannot establish general economics.
+The initial quota-blocked attempt and later completion after ordinary reset are
+recorded in [Phase 5 verification](docs/verification/phase5.md). See the
+[mathematical/input contract](docs/contracts/battery_optimization.md). Final CI
+and PR review are required before merging this phase.
+
 ## Architecture and planned layers
 
 ```mermaid
@@ -69,7 +80,7 @@ flowchart LR
     C["CAISO public data"] --> P["Python: implemented retrieval, normalization, validation"]
     P --> B["BigQuery: implemented contents, transitions, runs"]
     B --> D["dbt: verified SQL models, tests and lineage"]
-    D --> A["Phase 5 in progress: battery dispatch benchmark"]
+    D --> A["Verified battery dispatch benchmark"]
     A --> Q["Planned point-in-time quality and forecast-driven decisions"]
     F["Flyte: verified local tasks, retries, backfills"] -. orchestrates .-> P
     F -. orchestrates .-> D
@@ -98,7 +109,7 @@ and [architecture decisions](docs/adr/).
 | 2 | Revision-aware BigQuery persistence — complete within documented limits |
 | 3 | dbt analytical warehouse — complete within documented limits |
 | 4 | Flyte orchestration and backfills — complete within documented limits |
-| 5 | Battery optimization and perfect-foresight backtesting — in progress |
+| 5 | Battery optimization and perfect-foresight backtesting — local/live verified; CI/merge pending |
 | 6 | Point-in-time quality, forecasting and forecast-driven dispatch — planned |
 | 7 | Public reproducibility audit — planned |
 
@@ -107,7 +118,7 @@ and [architecture decisions](docs/adr/).
 ```text
 .github/workflows/ci.yml     Offline validation after dependency installation
 docs/adr/                   Architecture and Python compatibility decisions
-src/power_market_data/      CAISO adapter, domain records, warehouse boundary, CLI
+src/power_market_data/      Source, warehouse, optimization/backtesting, CLI
 docs/sources/               Verified access methods and provenance limitations
 docs/contracts/            Observation and warehouse grains, clocks, identities, recovery
 tests/fixtures/             Small synthetic source-shape fixtures
@@ -139,7 +150,7 @@ From the repository root, on Windows PowerShell:
 
 ```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,optimization]"
 ```
 
 If the Python launcher is absent in a Codex desktop environment, this is the
@@ -148,7 +159,7 @@ bundled-interpreter fallback used during initial setup:
 ```powershell
 $python312 = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
 & $python312 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,optimization]"
 ```
 
 The bundle path is specific to that environment; other machines can use their
@@ -159,9 +170,11 @@ On Linux/macOS:
 
 ```sh
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -e ".[dev]"
+.venv/bin/python -m pip install -e ".[dev,optimization]"
 ```
 
+The full validation environment includes the optional optimization extra. For
+ingestion-only use, `pip install -e .` does not install CVXPY/HiGHS.
 Installation downloads packages. Validation thereafter requires no CAISO access,
 cloud credentials, Docker, or WSL. Package builds may download their isolated
 build dependencies. Configuration reads process environment variables; no dotenv
@@ -239,6 +252,24 @@ Only one cooperating backfill/dbt writer may use a target at a time. Local Flyte
 requires no cluster, Docker, WSL or scheduler. Ordinary CI runs the native fixture
 graph without credentials; the separate cloud recovery suite is explicitly opt-in.
 
+## Daily battery benchmark
+
+The illustrative reference battery is 4 MWh / 1 MW, charge/discharge efficiency
+0.95 each, initial=terminal SOC 2 MWh and zero modeled throughput cost. The MILP
+forbids simultaneous charging/discharging and independently reconciles SOC and
+cash flow. Daily horizons reset SOC; they do not carry energy between days.
+
+```powershell
+.\.venv\Scripts\power-market-data.exe battery-backtest --start-date 2026-08-01 --end-date 2026-08-01 --location TH_NP15_GEN-APND --config examples/battery_reference.json --input-json tests/fixtures/battery_prices.json
+```
+
+This example is synthetic and needs no credentials. The command returns input
+lineage, dispatch, numerical diagnostics and descriptive daily/aggregate metrics.
+Optional `--output` and `--figure` paths save a local JSON report and one daily
+HTML plot. See the [contract](docs/contracts/battery_optimization.md#reproducible-local-commands)
+for live current-mart commands and the recorded verification. The sample
+has no forecast, market impact, ancillary services or general economic inference.
+
 ## Validation
 
 Windows PowerShell, from the repository root:
@@ -272,8 +303,10 @@ the graph is not an atomic snapshot of concurrent ingestion. Current data covers
 three real market days at NP15 plus system load; summaries do not establish
 source completeness. Flyte runs locally with explicit plans and one cooperating
 writer; no remote control plane or automated scheduler is deployed. There is no
-final Data Quality Observatory, as-of consumer query, forecasting, battery
-optimization or capture-price analysis.
+final Data Quality Observatory, as-of consumer query, forecasting or capture-price
+analysis. The battery benchmark uses only three NP15 days, a hypothetical
+price-taking battery and energy-only cash flows. Perfect foresight/current revised prices
+do not represent information available to a historical operator.
 Direct development tools are pinned; transitive dependencies are not fully locked.
 
 The original roadmap excluded battery optimization. [ADR 008](docs/adr/008-battery-benchmark.md)

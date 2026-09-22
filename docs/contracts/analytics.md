@@ -61,7 +61,7 @@ state_retrieved_at_utc belongs to this occurrence. first_seen_at is the original
 successful durable knowledge time of the content; state_known_at is this
 transition's successful durable knowledge time. Neither is CAISO publication time.
 
-## Aâ†’Bâ†’A and incremental processing
+## A→B→A and incremental processing
 
 | Retrieval | Unique accepted contents | Occurrences | Fact value |
 | --- | --- | --- | --- |
@@ -173,8 +173,8 @@ Opt-in controlled verification:
 ```
 
 It creates uniquely named pmd_dbt_it_raw_* and pmd_dbt_it_analytics_* datasets with
-ownership labels. The single end-to-end test covers both products across Aâ†’A,
-Aâ†’B, Aâ†’Bâ†’A, late arrivals and adversarial non-successful rows; executes real dbt
+ownership labels. The single end-to-end test covers both products across A→A,
+A→B, A→B→A, late arrivals and adversarial non-successful rows; executes real dbt
 build/merge/unit/data tests; compares full refresh; intentionally duplicates a
 disposable fact to require a data-test failure; then repairs it and generates docs.
 The raw fixture builder reuses Phase 1/2 identities. Synthetic prices never enter

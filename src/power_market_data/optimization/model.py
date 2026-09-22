@@ -18,7 +18,10 @@ class OptimizationError(PowerMarketDataError):
 def finite(value: object, name: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float, Decimal)):
         raise ValidationError(f"{name} must be a finite number")
-    result = float(value)
+    try:
+        result = float(value)
+    except OverflowError as exc:
+        raise ValidationError(f"{name} cannot be represented as a finite solver number") from exc
     if not math.isfinite(result):
         raise ValidationError(f"{name} must be a finite number")
     return result

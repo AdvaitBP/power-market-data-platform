@@ -136,6 +136,7 @@ def test_power_and_energy_limits(changes: dict[str, float], volume: float) -> No
         ("energy_capacity_mwh", -1),
         ("energy_capacity_mwh", float("inf")),
         ("energy_capacity_mwh", True),
+        ("energy_capacity_mwh", 10**1000),
         ("max_charge_mw", -1),
         ("max_discharge_mw", -1),
         ("charge_efficiency", 0),

@@ -1,11 +1,11 @@
 # Battery optimization and daily benchmark
 
-Status: Phase 5 implementation in progress; native warehouse integration is a
-separate completion gate. ADR 008 records the roadmap change.
+Status: local and native/live integration verified; final CI/merge remains the
+release gate. ADR 008 records the roadmap change.
 
 ## Mathematical contract
 
-One horizon contains 1â€“25 sorted, continuous, hourly UTC price intervals. The
+One horizon contains 1–25 sorted, continuous, hourly UTC price intervals. The
 core accepts `PriceInterval` values with Decimal USD/MWh prices, then converts
 prices to floating point at the solver boundary. It does no I/O. Negative prices
 are valid. Nonfinite prices, naive/non-UTC timestamps, gaps and duplicates fail.
@@ -20,7 +20,7 @@ For interval index $t=0,\ldots,n-1$, duration $\Delta t=1$ hour:
 With price $p_t$ in USD/MWh and optional cost $k$ in USD/MWh of **grid-side
 throughput, counting both charging and discharging**, maximize:
 
-$$\sum_t p_t(d_t-c_t)\Delta t-k(c_t+d_t)\Delta t.$$
+$$\sum_t \left[p_t(d_t-c_t)-k(c_t+d_t)\right]\Delta t.$$
 
 Constraints:
 

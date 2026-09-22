@@ -78,8 +78,11 @@ class MarketPrice:
 
 def from_row(row: Mapping[str, object]) -> MarketPrice:
     missing = set(COLUMNS) - row.keys()
-    if missing or any(row[column] is None for column in COLUMNS):
-        raise ValidationError(f"optimization input has missing/null fields: {sorted(missing)}")
+    missing_or_null = missing | {column for column in COLUMNS if row.get(column) is None}
+    if missing_or_null:
+        raise ValidationError(
+            f"optimization input has missing/null fields: {sorted(missing_or_null)}"
+        )
     for field, expected in (
         ("source", "CAISO"),
         ("market", "DAY_AHEAD_HOURLY"),

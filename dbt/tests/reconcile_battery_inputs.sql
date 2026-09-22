@@ -1,15 +1,55 @@
 -- Compare complete projected rows in both directions, plus explicit grain/units.
-with missing_or_changed as (
-    select source, market, unit, market_date, location, interval_start_utc, interval_end_utc, lmp, logical_key, content_id, content_hash, logical_key_schema, content_hash_schema, transition_id, state_run_id, state_ordinal, commit_sequence, first_seen_at, state_known_at from {{ ref('fct_hourly_lmp') }}
-    except distinct
-    select source, market, unit, market_date, location, interval_start_utc, interval_end_utc, lmp, logical_key, content_id, content_hash, logical_key_schema, content_hash_schema, transition_id, state_run_id, state_ordinal, commit_sequence, first_seen_at, state_known_at from {{ ref('mart_battery_optimization_inputs') }}
+with expected as (
+    select
+        source,
+        market,
+        unit,
+        market_date,
+        location,
+        interval_start_utc,
+        interval_end_utc,
+        lmp,
+        logical_key,
+        content_id,
+        content_hash,
+        logical_key_schema,
+        content_hash_schema,
+        transition_id,
+        state_run_id,
+        state_ordinal,
+        commit_sequence,
+        first_seen_at,
+        state_known_at
+    from {{ ref('fct_hourly_lmp') }}
+), actual as (
+    select
+        source,
+        market,
+        unit,
+        market_date,
+        location,
+        interval_start_utc,
+        interval_end_utc,
+        lmp,
+        logical_key,
+        content_id,
+        content_hash,
+        logical_key_schema,
+        content_hash_schema,
+        transition_id,
+        state_run_id,
+        state_ordinal,
+        commit_sequence,
+        first_seen_at,
+        state_known_at
+    from {{ ref('mart_battery_optimization_inputs') }}
+), missing_or_changed as (
+    select * from expected except distinct select * from actual
 ), extra_or_changed as (
-    select source, market, unit, market_date, location, interval_start_utc, interval_end_utc, lmp, logical_key, content_id, content_hash, logical_key_schema, content_hash_schema, transition_id, state_run_id, state_ordinal, commit_sequence, first_seen_at, state_known_at from {{ ref('mart_battery_optimization_inputs') }}
-    except distinct
-    select source, market, unit, market_date, location, interval_start_utc, interval_end_utc, lmp, logical_key, content_id, content_hash, logical_key_schema, content_hash_schema, transition_id, state_run_id, state_ordinal, commit_sequence, first_seen_at, state_known_at from {{ ref('fct_hourly_lmp') }}
+    select * from actual except distinct select * from expected
 ), invalid as (
     select logical_key
-    from {{ ref('mart_battery_optimization_inputs') }}
+    from actual
     where source is null
         or market is null
         or unit is null
@@ -37,7 +77,7 @@ with missing_or_changed as (
         or content_hash_schema != 'observation-content/v1'
 ), duplicates as (
     select location, interval_start_utc
-    from {{ ref('mart_battery_optimization_inputs') }}
+    from actual
     group by location, interval_start_utc having count(*) != 1
 )
 select 'missing_or_changed' as violation from missing_or_changed

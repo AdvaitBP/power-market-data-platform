@@ -1,8 +1,9 @@
 # ADR 008: Battery dispatch benchmark and revised analytical roadmap
 
 - Date: 2026-09-21
-- Status: Accepted; native Windows toolchain verified. Phase 5 model and live
-  integration verification remain in progress.
+- Status: Accepted; native Windows toolchain, local model and three real daily
+  solves verified. The initial native-test quota blockage was resolved after
+  ordinary reset, without changing safeguards. Final CI/merge remains a gate.
 - Scope: Explicitly changes the original Phase 5/brief scope; extends ADR 003
   with an independent optimization consumer. ADRs 001–007 remain historical
   decisions and their data/time/identity/persistence contracts are unchanged.
@@ -37,7 +38,9 @@ and exposed solve time, mip_gap and mip_node_count. pip check passed.
 Use the optional application extra `.[optimization]`. Ingestion users need not
 install solvers. The optimization core imports CVXPY only when solving. Do not
 put these dependencies into the dbt or Flyte tooling environments. Direct pins
-record the tested combination; this is not a complete transitive lock.
+record the tested combination; this is not a complete transitive lock. The
+optional figure reuses Plotly already present through gridstatus and declares
+that dependency directly; no new plotting engine or service is added.
 
 [CVXPY's solver interface](https://www.cvxpy.org/tutorial/solvers/) supports
 explicit `solver="HIGHS"` and HiGHS options. The

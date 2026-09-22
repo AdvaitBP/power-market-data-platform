@@ -163,6 +163,9 @@ def test_input_contract_rejects_malformed_fields(field: str, value: object) -> N
 
 def test_missing_column_and_invalid_range() -> None:
     row = rows_for()[0]
+    row["lmp"] = None
+    with pytest.raises(ValidationError, match="lmp"):
+        from_row(row)
     del row["lmp"]
     with pytest.raises(ValidationError, match="missing"):
         from_row(row)
