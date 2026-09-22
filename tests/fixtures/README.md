@@ -21,3 +21,13 @@ null rules, interval semantics and the fall-back load limitation.
 
 All unit tests block socket connections and DNS resolution. Live smoke tests
 are explicit CLI invocations outside pytest and CI.
+
+## Battery benchmark fixture
+
+battery_prices.json contains 24 invented hourly prices and explicitly synthetic
+lineage identifiers. It matches the optimization mart's column/types contract;
+it is neither copied CAISO data nor a source for market conclusions. The CLI
+marks file inputs as unverified offline input. Its negative-price morning and
+higher-price evening exercise the complete offline MILP/backtest/report path.
+Other tests generate winter, summer, spring-forward and fall-back LMP days in
+UTC; this does not change the existing unsupported fall-back **load** contract.

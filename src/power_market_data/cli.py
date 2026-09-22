@@ -62,8 +62,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     resume = operations.add_parser("resume", help="Reconcile a submitted commit, without fetching")
     resume.add_argument("--run-id", required=True)
     _products(operations.add_parser("inspect", help="Bounded counts and run manifests"))
+    from power_market_data.backtesting.cli import configure, run
+
+    configure(
+        commands.add_parser("battery-backtest", help="Daily perfect-foresight battery benchmark")
+    )
     args = parser.parse_args(argv)
     try:
+        if args.command == "battery-backtest":
+            run(args)
+            return 0
         if args.command in ("warehouse", "ingest"):
             store = BigQueryWarehouse(WarehouseConfig.from_environment())
             if args.command == "warehouse" and args.operation == "bootstrap":

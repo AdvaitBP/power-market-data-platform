@@ -237,3 +237,15 @@ def test_solver_failure_and_time_limit_are_visible(monkeypatch: pytest.MonkeyPat
         solve_battery_dispatch(prices(1), config())
     with pytest.raises(ValidationError, match="time limit"):
         solve_battery_dispatch(prices(1), config(), time_limit_seconds=0)
+
+
+@pytest.mark.parametrize("status", ["unbounded", "user_limit", "optimal_inaccurate"])
+def test_unaccepted_status_has_no_dispatch(status: str, monkeypatch: pytest.MonkeyPatch) -> None:
+    cp = import_module("cvxpy")
+
+    def stop(problem: Any, **kwargs: object) -> None:
+        problem._status = status
+
+    monkeypatch.setattr(cp.Problem, "solve", stop)
+    with pytest.raises(OptimizationError, match=status):
+        solve_battery_dispatch(prices(1), config())

@@ -1,0 +1,21 @@
+select
+    source,
+    market,
+    unit,
+    market_date,
+    location,
+    interval_start_utc,
+    interval_end_utc,
+    lmp,
+    logical_key,
+    content_id,
+    content_hash,
+    logical_key_schema,
+    content_hash_schema,
+    transition_id,
+    state_run_id,
+    state_ordinal,
+    commit_sequence,
+    first_seen_at,
+    state_known_at
+from {{ ref('fct_hourly_lmp') }}

@@ -61,7 +61,7 @@ state_retrieved_at_utc belongs to this occurrence. first_seen_at is the original
 successful durable knowledge time of the content; state_known_at is this
 transition's successful durable knowledge time. Neither is CAISO publication time.
 
-## A→B→A and incremental processing
+## Aâ†’Bâ†’A and incremental processing
 
 | Retrieval | Unique accepted contents | Occurrences | Fact value |
 | --- | --- | --- | --- |
@@ -105,8 +105,8 @@ unchanged; dbt cannot recover source observations that were never accepted.
 The mart averages hourly prices without volume weighting and reports minimum,
 maximum and negative-price count. Negative prices are valid. There is deliberately
 no component-sum test: the source representation does not support that invariant.
-Only one real day is currently available, so no hour-of-day statistical profile
-or analytical conclusion is added.
+The verified sample now contains three NP15 market days (Phase 4); no
+hour-of-day statistical profile or general market conclusion is inferred.
 
 Ingestion health's latest successful knowledge time may be NULL if a group has
 never succeeded. Optional counts from unfinished runs remain NULL in staging;
@@ -173,8 +173,8 @@ Opt-in controlled verification:
 ```
 
 It creates uniquely named pmd_dbt_it_raw_* and pmd_dbt_it_analytics_* datasets with
-ownership labels. The single end-to-end test covers both products across A→A,
-A→B, A→B→A, late arrivals and adversarial non-successful rows; executes real dbt
+ownership labels. The single end-to-end test covers both products across Aâ†’A,
+Aâ†’B, Aâ†’Bâ†’A, late arrivals and adversarial non-successful rows; executes real dbt
 build/merge/unit/data tests; compares full refresh; intentionally duplicates a
 disposable fact to require a data-test failure; then repairs it and generates docs.
 The raw fixture builder reuses Phase 1/2 identities. Synthetic prices never enter
@@ -201,3 +201,11 @@ interpreter and guards the adapter-to-client cap configuration without networkin
 Run this check before submitting live dbt work; do not proceed if it fails.
 The integration sequence runs the full suite initially and at full refresh;
 intervening revisions run only the two facts to limit repeated billable tests.
+
+## Battery benchmark input
+
+Phase 5 adds `mart_battery_optimization_inputs`, a narrow view over the current
+LMP fact. Its [contract](battery_optimization.md#analytical-input-and-daily-backtest)
+defines grain, lineage, units and strict daily coverage requirements. No battery
+physics or optimization is implemented in SQL; no previous raw/fact contract
+changes. Native verification is recorded separately in `docs/verification/phase5.md`.
