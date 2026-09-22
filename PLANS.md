@@ -1,7 +1,7 @@
 # Implementation plan
 
-Phases 0–4 are complete within their documented scope. Phases 5–6 are planned
-and unimplemented.
+Phases 0–4 are complete within their documented scope. Phase 5 is in progress; Phases 6–7 are planned and unimplemented.
+ADR 008 records the explicit 2026-09-21 roadmap change after Phase 4.
 Each phase must meet its definition of done before the next begins. Tests that
 require an external service must be explicit and separate from offline unit CI.
 
@@ -93,21 +93,46 @@ the [Phase 4 verification record](docs/verification/phase4.md).
   and operational limits are documented and an opt-in run verifies them.
 - **Deferred:** Additional orchestration systems and large unattended deployments.
 
-## Phase 5 — data-quality/as-of/capture-price analytics
+## Phase 5 — Battery dispatch optimization and historical backtesting
 
-- **Purpose:** Show what data quality and revision timing mean for an analysis.
-- **Deliverables:** Freshness/completeness/revision reports, as-of queries using
-  knowledge cutoffs, and renewable capture-price/supply-timing examples with
-  explicit price locations, generation units, interval weighting, and exclusions.
-- **Tests:** No observations learned after the cutoff enter an as-of result;
-  corrections change only eligible results; hand-calculated weighted-price
-  examples cover missing intervals, zero generation, and negative prices.
-- **Definition of done:** Results reproduce from a recorded cutoff and versioned
-  transformations; quality gaps are visible alongside conclusions, and examples
-  state their geographic, temporal, and data limitations.
-- **Deferred:** Trading, bidding, dispatch/battery optimization, forecasts, and P&L.
+Status: **in progress; not complete**. [ADR 008](docs/adr/008-battery-benchmark.md)
+replaces the former immediate data-quality/as-of/capture-price objective. This is
+an explicit scope change, not a claim that batteries were always in scope.
 
-## Phase 6 — public portfolio/reproducibility audit
+- **Purpose:** Study constrained energy decisions using the trusted current-state
+  price data through a price-taking, perfect-foresight energy-arbitrage benchmark.
+- **Deliverables:** Optional CVXPY/HiGHS application extra, a typed battery MILP,
+  physical/monetary reconciliation, a current-price dbt input mart, independent
+  daily backtesting, one local dispatch figure and mathematical documentation.
+- **Tests:** Hand-computed schedules, terminal SOC, efficiencies, power/energy
+  bounds, negative-price exclusivity, invalid inputs, solver failures, objective
+  reconciliation, daily continuity/DST and offline end-to-end backtests.
+- **Definition of done:** The model and offline tests pass; the native dbt input
+  mart and existing three NP15 days flow into the solver, all schedules pass
+  physical/economic checks, measured results/limits are recorded, and Windows/Linux
+  CI passes. Quota-blocked live verification leaves the PR draft and unmerged.
+- **Deferred:** Forecasts, as-of inputs, stochastic/robust optimization, real
+  bidding, ancillary services, market impact, rolling SOC across days and P&L.
+
+## Phase 6 — Point-in-time quality, forecasting and forecast-driven dispatch
+
+- **Purpose:** Compare decisions made with information available at the time
+  against the Phase 5 oracle benchmark, without look-ahead leakage.
+- **Deliverables:** Knowledge-cutoff queries and quality reports; a documented
+  forecasting baseline, temporal evaluation and forecast-driven dispatch with
+  economic regret. These are planned, not implemented. The original as-of and
+  Data Quality Observatory work moves here; it is not discarded.
+- **Tests:** No post-cutoff observations/features, revision timing, missing-data
+  handling, chronological train/evaluation separation, physical feasibility and
+  independently reconciled regret against the same-horizon oracle.
+- **Definition of done:** Recorded input cutoffs and model versions reproduce
+  predictions and decisions; forecast and economic errors are reported without
+  claiming a deployable trading policy.
+- **Deferred:** Trading/bidding automation, proprietary forecasts, stochastic
+  optimization and real asset P&L. Capture-price analysis is an optional later
+  analytical extension, not an immediate mandatory phase.
+
+## Phase 7 — Public reproducibility audit
 
 - **Purpose:** Let another reader verify the engineering and its limitations.
 - **Deliverables:** Fresh-checkout walkthrough, bounded sample reproduction,

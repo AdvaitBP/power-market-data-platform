@@ -69,7 +69,8 @@ flowchart LR
     C["CAISO public data"] --> P["Python: implemented retrieval, normalization, validation"]
     P --> B["BigQuery: implemented contents, transitions, runs"]
     B --> D["dbt: verified SQL models, tests and lineage"]
-    D --> A["Planned quality, as-of and capture-price analysis"]
+    D --> A["Phase 5 in progress: battery dispatch benchmark"]
+    A --> Q["Planned point-in-time quality and forecast-driven decisions"]
     F["Flyte: verified local tasks, retries, backfills"] -. orchestrates .-> P
     F -. orchestrates .-> D
 ```
@@ -97,8 +98,9 @@ and [architecture decisions](docs/adr/).
 | 2 | Revision-aware BigQuery persistence — complete within documented limits |
 | 3 | dbt analytical warehouse — complete within documented limits |
 | 4 | Flyte orchestration and backfills — complete within documented limits |
-| 5 | Data-quality/as-of/capture-price analytics |
-| 6 | Public portfolio/reproducibility audit |
+| 5 | Battery optimization and perfect-foresight backtesting — in progress |
+| 6 | Point-in-time quality, forecasting and forecast-driven dispatch — planned |
+| 7 | Public reproducibility audit — planned |
 
 ## Repository structure
 
@@ -274,5 +276,8 @@ final Data Quality Observatory, as-of consumer query, forecasting, battery
 optimization or capture-price analysis.
 Direct development tools are pinned; transitive dependencies are not fully locked.
 
-Trading strategy, automated bidding, dispatch optimization, production P&L,
-proprietary forecasting, and battery optimization are outside scope.
+The original roadmap excluded battery optimization. [ADR 008](docs/adr/008-battery-benchmark.md)
+explicitly revises that choice: Phase 5 develops a local, energy-only,
+perfect-foresight battery benchmark. Forecasting and as-of work are deferred to
+Phase 6. Real trading strategy, automated bidding, operational scheduling,
+production P&L and proprietary forecasting remain outside scope.
